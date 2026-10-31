@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import func, or_
 from app.core.database import get_db
 from app.models import (
@@ -107,7 +107,18 @@ def list_subscriptions(
         )
 
     total = query.count()
-    items = query.order_by(Subscription.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = (
+        query.options(
+            joinedload(Subscription.customer),
+            joinedload(Subscription.plan),
+            selectinload(Subscription.lines).joinedload(SubscriptionLine.product),
+            selectinload(Subscription.lines).joinedload(SubscriptionLine.variant),
+        )
+        .order_by(Subscription.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
 
     return PaginatedResponse(
         items=[format_sub_response(s) for s in items],
@@ -141,13 +152,13 @@ def create_subscription(
     if not plan:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Plan not found")
 
-    if payload.end_date < payload.start_date:
+    if payload.end_date and payload.end_date < payload.start_date:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="End date must be on or after start date")
 
     sub_number = generate_sub_number(db)
     subscription = Subscription(
         number=sub_number,
-        customer_id=payload.customer_id,
+        customer_id=target_customer_id,
         plan_id=payload.plan_id,
         status="draft",
         start_date=payload.start_date,

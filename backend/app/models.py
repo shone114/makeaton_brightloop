@@ -181,6 +181,8 @@ class Subscription(Base):
 
     __table_args__ = (
         Index("idx_sub_status_billed", "status", "billed_through"),
+        Index("idx_sub_created_at", "created_at"),
+        Index("idx_sub_customer_status", "customer_id", "status"),
     )
 
 
@@ -232,9 +234,12 @@ class Invoice(Base):
     discounts = relationship("InvoiceDiscount", back_populates="invoice", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="invoice", cascade="all, delete-orphan")
 
-    # Double billing guard at DB level:
+    # Double billing guard at DB level + Performance indexes:
     __table_args__ = (
         UniqueConstraint("subscription_id", "period_start", name="uq_invoice_sub_period_start"),
+        Index("idx_invoice_status_due", "status", "due_date"),
+        Index("idx_invoice_date_created", "invoice_date", "created_at"),
+        Index("idx_invoice_customer_status", "customer_id", "status"),
     )
 
 

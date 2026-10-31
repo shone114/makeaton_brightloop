@@ -1,9 +1,9 @@
 from typing import List
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import func, desc, and_
 from app.core.database import get_db
-from app.models import Subscription, Invoice, Payment, User
+from app.models import Subscription, SubscriptionLine, Invoice, InvoiceLine, Payment, User
 from app.schemas import (
     SubscriptionResponse,
     InvoiceResponse,
@@ -64,6 +64,12 @@ def get_my_subscriptions(
 ):
     subs = (
         db.query(Subscription)
+        .options(
+            joinedload(Subscription.customer),
+            joinedload(Subscription.plan),
+            selectinload(Subscription.lines).joinedload(SubscriptionLine.product),
+            selectinload(Subscription.lines).joinedload(SubscriptionLine.variant),
+        )
         .filter(Subscription.customer_id == current_user.id)
         .order_by(desc(Subscription.created_at))
         .all()
@@ -78,6 +84,14 @@ def get_my_invoices(
 ):
     invoices = (
         db.query(Invoice)
+        .options(
+            joinedload(Invoice.customer),
+            joinedload(Invoice.subscription),
+            selectinload(Invoice.lines).joinedload(InvoiceLine.product),
+            selectinload(Invoice.lines).joinedload(InvoiceLine.variant),
+            selectinload(Invoice.discounts),
+            selectinload(Invoice.payments),
+        )
         .filter(Invoice.customer_id == current_user.id)
         .order_by(desc(Invoice.invoice_date))
         .all()

@@ -2,7 +2,7 @@ import calendar
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import func, and_, or_
 from app.core.database import get_db
 from app.core.config import settings
@@ -78,6 +78,7 @@ def generate_invoice_for_subscription(
     invoice_date: Optional[date] = None,
     sub: Optional[Subscription] = None,
     inv_number_override: Optional[str] = None,
+    cached_discounts: Optional[List[DiscountRule]] = None,
 ) -> Optional[Invoice]:
     if invoice_date is None:
         invoice_date = date.today()
@@ -166,17 +167,20 @@ def generate_invoice_for_subscription(
         tax_acc += line_tax
 
     # AUTOMATIC DISCOUNT APPLICATION
-    available_discounts = db.query(DiscountRule).filter(
-        and_(
-            DiscountRule.is_active == True,
-            DiscountRule.start_date <= invoice_date,
-            DiscountRule.end_date >= invoice_date,
-            or_(
-                DiscountRule.usage_limit == None,
-                DiscountRule.usage_count < DiscountRule.usage_limit,
-            ),
-        )
-    ).all()
+    if cached_discounts is not None:
+        available_discounts = cached_discounts
+    else:
+        available_discounts = db.query(DiscountRule).options(selectinload(DiscountRule.products)).filter(
+            and_(
+                DiscountRule.is_active == True,
+                DiscountRule.start_date <= invoice_date,
+                DiscountRule.end_date >= invoice_date,
+                or_(
+                    DiscountRule.usage_limit == None,
+                    DiscountRule.usage_count < DiscountRule.usage_limit,
+                ),
+            )
+        ).all()
 
     total_discount_acc = 0.0
     for disc in available_discounts:
@@ -339,7 +343,20 @@ def list_invoices(
         )
 
     total = query.count()
-    items = query.order_by(Invoice.invoice_date.desc(), Invoice.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = (
+        query.options(
+            joinedload(Invoice.customer),
+            joinedload(Invoice.subscription),
+            selectinload(Invoice.lines).joinedload(InvoiceLine.product),
+            selectinload(Invoice.lines).joinedload(InvoiceLine.variant),
+            selectinload(Invoice.discounts),
+            selectinload(Invoice.payments),
+        )
+        .order_by(Invoice.invoice_date.desc(), Invoice.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
 
     return PaginatedResponse(
         items=[format_invoice_response(inv) for inv in items],
@@ -408,6 +425,23 @@ def generate_bulk_invoices(db: Session = Depends(get_db)):
     )
 
     base_inv_count = db.query(func.count(Invoice.id)).scalar() or 0
+    cached_discounts = (
+        db.query(DiscountRule)
+        .options(selectinload(DiscountRule.products))
+        .filter(
+            and_(
+                DiscountRule.is_active == True,
+                DiscountRule.start_date <= today,
+                DiscountRule.end_date >= today,
+                or_(
+                    DiscountRule.usage_limit == None,
+                    DiscountRule.usage_count < DiscountRule.usage_limit,
+                ),
+            )
+        )
+        .all()
+    )
+
     generated_count = 0
     skipped_count = 0
     details = []
@@ -419,6 +453,7 @@ def generate_bulk_invoices(db: Session = Depends(get_db)):
             sub.id,
             sub=sub,
             inv_number_override=next_num,
+            cached_discounts=cached_discounts,
         )
         if inv:
             generated_count += 1

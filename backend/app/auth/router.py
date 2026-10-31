@@ -22,7 +22,7 @@ from app.schemas import (
     PasswordResetConfirm,
     PaginatedResponse,
 )
-from app.common.dependencies import get_current_user, require_admin, record_audit_log
+from app.common.dependencies import get_current_user, require_admin, require_staff_or_admin, record_audit_log
 from app.common.email import send_email
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Users"])
@@ -172,12 +172,12 @@ def confirm_password_reset(payload: PasswordResetConfirm, db: Session = Depends(
     return {"message": "Password has been successfully updated. You may now log in."}
 
 
-@router.get("/users", response_model=PaginatedResponse, dependencies=[Depends(require_admin)])
+@router.get("/users", response_model=PaginatedResponse, dependencies=[Depends(require_staff_or_admin)])
 def list_users(
     role: Optional[str] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
 ):
     query = db.query(User)
