@@ -16,6 +16,8 @@ backend/.env
 *.sqlite3
 brightloop.db
 test_*.db
+test_invoice_*.pdf
+*.pdf
 
 # Python
 backend/venv/
@@ -54,3 +56,4 @@ next-env.d.ts
 # Operating System Files
 .DS_Store
 Thumbs.db
+

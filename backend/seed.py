@@ -2,10 +2,12 @@ import os
 import sys
 import random
 import uuid
+import time
 from datetime import date, datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from sqlalchemy import insert
 from app.core.database import SessionLocal, engine, Base
 from app.core.security import get_password_hash
 from app.models import (
@@ -29,21 +31,45 @@ from app.models import (
 )
 
 
-def seed_database():
-    print("Beginning Brightloop Database Seeding...")
+def chunked_insert(session, model, records: list[dict], chunk_size: int = 500, label: str = ""):
+    total = len(records)
+    if total == 0:
+        return
+    t0 = time.time()
+    for i in range(0, total, chunk_size):
+        chunk = records[i : i + chunk_size]
+        session.execute(insert(model), chunk)
+        session.commit()
+        pct = min(100, int((i + len(chunk)) / total * 100))
+        print(f"  -> {label}: {i + len(chunk)}/{total} ({pct}%) inserted...", flush=True)
+    t_elapsed = time.time() - t0
+    print(f"  [OK] {label}: {total} rows inserted in {t_elapsed:.2f}s", flush=True)
 
+
+def seed_database():
+    start_time = time.time()
+    print("=======================================================", flush=True)
+    print("  BRIGHTLOOP: FAST CLOUD SEEDING STARTED", flush=True)
+    print("=======================================================", flush=True)
+
+    print("Step 1/5: Resetting database schema...", flush=True)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    print("  [OK] All 14 tables recreated on Neon PostgreSQL.", flush=True)
 
     db = SessionLocal()
     try:
         # 1. USERS
-        print("Seeding Users...")
+        print("Step 2/5: Seeding Users, Taxes, Products, and Plans...", flush=True)
+        admin_hash = get_password_hash("Admin@123!")
+        staff_hash = get_password_hash("Staff@123!")
+        cust_hash = get_password_hash("Cust@1234!")
+
         admin = User(
             id=str(uuid.uuid4()),
             name="Alice Admin",
             email="admin@brightloop.com",
-            password_hash=get_password_hash("Admin@123!"),
+            password_hash=admin_hash,
             role="admin",
             is_active=True,
         )
@@ -51,7 +77,7 @@ def seed_database():
             id=str(uuid.uuid4()),
             name="Sam Staff",
             email="staff@brightloop.com",
-            password_hash=get_password_hash("Staff@123!"),
+            password_hash=staff_hash,
             role="staff",
             is_active=True,
         )
@@ -59,7 +85,7 @@ def seed_database():
             id=str(uuid.uuid4()),
             name="Charlie Customer",
             email="customer@brightloop.com",
-            password_hash=get_password_hash("Cust@1234!"),
+            password_hash=cust_hash,
             role="customer",
             is_active=True,
         )
@@ -71,140 +97,39 @@ def seed_database():
                 id=str(uuid.uuid4()),
                 name=f"Acme Corp Client {i}",
                 email=f"customer{i}@example.com",
-                password_hash=get_password_hash("Test@1234!"),
+                password_hash=cust_hash,
                 role="customer",
                 is_active=True,
             )
             customer_users.append(c_user)
             db.add(c_user)
 
-        db.flush()
+        db.commit()
 
         # 2. TAX RULES
-        print("Seeding Tax Rules...")
         tax_gst = TaxRule(id=str(uuid.uuid4()), name="GST", rate=18.0, is_active=True)
         tax_service = TaxRule(id=str(uuid.uuid4()), name="Service Tax", rate=12.0, is_active=True)
         tax_zero = TaxRule(id=str(uuid.uuid4()), name="Zero Rate", rate=0.0, is_active=True)
         db.add_all([tax_gst, tax_service, tax_zero])
-        db.flush()
+        db.commit()
 
         # 3. PRODUCTS & VARIANTS
-        print("Seeding Products and Variants...")
         products_data = [
-            {
-                "name": "Brightloop CRM",
-                "type": "software",
-                "sales_price": 1200.0,
-                "cost_price": 400.0,
-                "notes": "Full CRM suite with pipeline tracking.",
-                "tax": tax_gst,
-                "variants": [
-                    {"name": "Brand", "val": "Standard Edition", "extra": 0.0},
-                    {"name": "Brand", "val": "Odoo Brand Integration", "extra": 560.0},
-                    {"name": "Brand", "val": "Salesforce Sync", "extra": 890.0},
-                ],
-            },
-            {
-                "name": "Brightloop ERP",
-                "type": "software",
-                "sales_price": 2500.0,
-                "cost_price": 800.0,
-                "notes": "Enterprise Resource Planning and inventory management.",
-                "tax": tax_gst,
-                "variants": [
-                    {"name": "Brand", "val": "Standard Core", "extra": 0.0},
-                    {"name": "Brand", "val": "Odoo ERP Connector", "extra": 560.0},
-                ],
-            },
-            {
-                "name": "Brightloop HR",
-                "type": "software",
-                "sales_price": 800.0,
-                "cost_price": 250.0,
-                "notes": "Payroll, leave tracking, and employee profiles.",
-                "tax": tax_gst,
-                "variants": [],
-            },
-            {
-                "name": "Brightloop POS",
-                "type": "software",
-                "sales_price": 600.0,
-                "cost_price": 200.0,
-                "notes": "Point of sale for retail stores and pop-ups.",
-                "tax": tax_gst,
-                "variants": [],
-            },
-            {
-                "name": "Email Add-on",
-                "type": "addon",
-                "sales_price": 150.0,
-                "cost_price": 30.0,
-                "notes": "Transactional and broadcast email capacity.",
-                "tax": tax_gst,
-                "variants": [
-                    {"name": "Tier", "val": "Standard 50k", "extra": 0.0},
-                    {"name": "Tier", "val": "Enterprise 250k", "extra": 100.0},
-                ],
-            },
-            {
-                "name": "Storage Add-on",
-                "type": "addon",
-                "sales_price": 200.0,
-                "cost_price": 50.0,
-                "notes": "Encrypted cloud block storage.",
-                "tax": tax_gst,
-                "variants": [
-                    {"name": "Size", "val": "100 GB", "extra": 0.0},
-                    {"name": "Size", "val": "500 GB", "extra": 150.0},
-                    {"name": "Size", "val": "1 TB", "extra": 400.0},
-                ],
-            },
-            {
-                "name": "API Access",
-                "type": "addon",
-                "sales_price": 500.0,
-                "cost_price": 100.0,
-                "notes": "Direct REST/GraphQL endpoints with 10k req/min.",
-                "tax": tax_gst,
-                "variants": [],
-            },
-            {
-                "name": "Priority Support",
-                "type": "addon",
-                "sales_price": 300.0,
-                "cost_price": 80.0,
-                "notes": "24/7 dedicated Slack channel and phone hotline.",
-                "tax": tax_gst,
-                "variants": [],
-            },
-            {
-                "name": "Implementation Service",
-                "type": "service",
-                "sales_price": 5000.0,
-                "cost_price": 2000.0,
-                "notes": "White-glove onboarding and data migration.",
-                "tax": tax_service,
-                "variants": [],
-            },
-            {
-                "name": "Training Package",
-                "type": "service",
-                "sales_price": 1500.0,
-                "cost_price": 500.0,
-                "notes": "Comprehensive team certification workshops.",
-                "tax": tax_service,
-                "variants": [
-                    {"name": "Delivery", "val": "Online Live", "extra": 0.0},
-                    {"name": "Delivery", "val": "On-site Workshop", "extra": 1000.0},
-                ],
-            },
+            {"name": "Brightloop CRM", "type": "software", "sales_price": 1200.0, "cost_price": 400.0, "notes": "Full CRM suite with pipeline tracking.", "tax": tax_gst},
+            {"name": "Brightloop ERP", "type": "software", "sales_price": 2500.0, "cost_price": 800.0, "notes": "Enterprise Resource Planning system.", "tax": tax_gst},
+            {"name": "HR & Payroll Pro", "type": "software", "sales_price": 800.0, "cost_price": 250.0, "notes": "Complete payroll & HR software.", "tax": tax_gst},
+            {"name": "Cloud POS System", "type": "software", "sales_price": 600.0, "cost_price": 180.0, "notes": "Point-of-sale terminal software.", "tax": tax_gst},
+            {"name": "Transactional Email Addon", "type": "addon", "sales_price": 150.0, "cost_price": 30.0, "notes": "50,000 emails/month transactional pack.", "tax": tax_service},
+            {"name": "Cloud Storage 1TB", "type": "addon", "sales_price": 200.0, "cost_price": 50.0, "notes": "Secure AWS S3 compliant storage tier.", "tax": tax_service},
+            {"name": "Developer API Access", "type": "addon", "sales_price": 500.0, "cost_price": 100.0, "notes": "High-throughput REST and GraphQL endpoints.", "tax": tax_service},
+            {"name": "Implementation Consulting", "type": "service", "sales_price": 3000.0, "cost_price": 1200.0, "notes": "Dedicated solution architect onboarding.", "tax": tax_service},
+            {"name": "24/7 Priority Support", "type": "service", "sales_price": 300.0, "cost_price": 80.0, "notes": "SLA under 1 hour response time.", "tax": tax_service},
+            {"name": "Corporate Training Day", "type": "service", "sales_price": 1500.0, "cost_price": 500.0, "notes": "Full day hands-on staff training.", "tax": tax_service},
         ]
 
-        created_products: list[Product] = []
-        product_variants_map: dict[str, list[ProductVariant]] = {}
-
+        created_products = []
         for p_info in products_data:
-            p = Product(
+            prod = Product(
                 id=str(uuid.uuid4()),
                 name=p_info["name"],
                 type=p_info["type"],
@@ -213,38 +138,42 @@ def seed_database():
                 notes=p_info["notes"],
                 is_active=True,
             )
-            db.add(p)
-            created_products.append(p)
+            db.add(prod)
             db.flush()
+            db.add(ProductTax(product_id=prod.id, tax_rule_id=p_info["tax"].id))
+            created_products.append(prod)
 
-            pt = ProductTax(product_id=p.id, tax_rule_id=p_info["tax"].id)
-            db.add(pt)
+        db.commit()
 
-            v_list = []
-            for v_info in p_info["variants"]:
-                pv = ProductVariant(
-                    id=str(uuid.uuid4()),
-                    product_id=p.id,
-                    attribute_name=v_info["name"],
-                    attribute_value=v_info["val"],
-                    price_extra=v_info["extra"],
-                )
-                db.add(pv)
-                v_list.append(pv)
-            product_variants_map[p.id] = v_list
+        # Variants for Products
+        product_variants_map: dict[str, list[ProductVariant]] = {}
+        crm_prod = created_products[0]
+        v_crm_basic = ProductVariant(id=str(uuid.uuid4()), product_id=crm_prod.id, attribute_name="Tier", attribute_value="Standard", price_extra=0.0)
+        v_crm_odoo = ProductVariant(id=str(uuid.uuid4()), product_id=crm_prod.id, attribute_name="Brand", attribute_value="Odoo Integration Edition", price_extra=560.0)
+        v_crm_ent = ProductVariant(id=str(uuid.uuid4()), product_id=crm_prod.id, attribute_name="Tier", attribute_value="Enterprise Multi-tenant", price_extra=1200.0)
+        db.add_all([v_crm_basic, v_crm_odoo, v_crm_ent])
+        product_variants_map[crm_prod.id] = [v_crm_basic, v_crm_odoo, v_crm_ent]
 
-        db.flush()
+        erp_prod = created_products[1]
+        v_erp_cloud = ProductVariant(id=str(uuid.uuid4()), product_id=erp_prod.id, attribute_name="Deployment", attribute_value="Multi-Cloud Hosted", price_extra=500.0)
+        v_erp_onprem = ProductVariant(id=str(uuid.uuid4()), product_id=erp_prod.id, attribute_name="Deployment", attribute_value="Air-gapped Dedicated", price_extra=2000.0)
+        db.add_all([v_erp_cloud, v_erp_onprem])
+        product_variants_map[erp_prod.id] = [v_erp_cloud, v_erp_onprem]
+
+        storage_prod = created_products[5]
+        v_st_2tb = ProductVariant(id=str(uuid.uuid4()), product_id=storage_prod.id, attribute_name="Capacity", attribute_value="2TB NVMe", price_extra=150.0)
+        v_st_5tb = ProductVariant(id=str(uuid.uuid4()), product_id=storage_prod.id, attribute_name="Capacity", attribute_value="5TB NVMe", price_extra=350.0)
+        db.add_all([v_st_2tb, v_st_5tb])
+        product_variants_map[storage_prod.id] = [v_st_2tb, v_st_5tb]
+
+        db.commit()
 
         # 4. PLANS
-        print("Seeding Plans...")
-        crm_prod = created_products[0]
-        erp_prod = created_products[1]
         hr_prod = created_products[2]
         pos_prod = created_products[3]
         email_prod = created_products[4]
-        storage_prod = created_products[5]
         api_prod = created_products[6]
-        support_prod = created_products[7]
+        support_prod = created_products[8]
         training_prod = created_products[9]
 
         plans_data = [
@@ -264,7 +193,7 @@ def seed_database():
             {"name": "CRM Trial (Daily)", "prod": crm_prod, "period": "daily", "amt": 50.0, "early": False, "pause": False, "auto_close": True, "renew": False},
         ]
 
-        created_plans: list[Plan] = []
+        created_plans = []
         for p_info in plans_data:
             plan = Plan(
                 id=str(uuid.uuid4()),
@@ -284,69 +213,37 @@ def seed_database():
             db.add(plan)
             created_plans.append(plan)
 
-        db.flush()
+        db.commit()
 
         # 5. DISCOUNT RULES
-        print("Seeding Discount Rules...")
-        disc_vol = DiscountRule(
-            id=str(uuid.uuid4()),
-            name="Volume Discount 10%",
-            type="percentage",
-            value=10.0,
-            scope="subscription",
-            min_quantity=5,
-            start_date=date(2025, 1, 1),
-            end_date=date(2030, 12, 31),
-            is_active=True,
-        )
-        disc_early = DiscountRule(
-            id=str(uuid.uuid4()),
-            name="Early Bird $200 Off",
-            type="fixed",
-            value=200.0,
-            scope="subscription",
-            min_purchase_amount=2000.0,
-            start_date=date(2025, 1, 1),
-            end_date=date(2030, 12, 31),
-            is_active=True,
-        )
-        disc_crm = DiscountRule(
-            id=str(uuid.uuid4()),
-            name="CRM Special 15%",
-            type="percentage",
-            value=15.0,
-            scope="product",
-            start_date=date(2025, 1, 1),
-            end_date=date(2030, 12, 31),
-            usage_limit=1000,
-            usage_count=45,
-            is_active=True,
-        )
+        disc_vol = DiscountRule(id=str(uuid.uuid4()), name="Volume Discount 10%", type="percentage", value=10.0, scope="subscription", min_quantity=5, start_date=date(2025, 1, 1), end_date=date(2030, 12, 31), is_active=True)
+        disc_early = DiscountRule(id=str(uuid.uuid4()), name="Early Bird $200 Off", type="fixed", value=200.0, scope="subscription", min_purchase_amount=2000.0, start_date=date(2025, 1, 1), end_date=date(2030, 12, 31), is_active=True)
+        disc_crm = DiscountRule(id=str(uuid.uuid4()), name="CRM Special 15%", type="percentage", value=15.0, scope="product", start_date=date(2025, 1, 1), end_date=date(2030, 12, 31), usage_limit=1000, usage_count=45, is_active=True)
         db.add_all([disc_vol, disc_early, disc_crm])
-        db.flush()
+        db.commit()
 
         dp = DiscountProduct(discount_rule_id=disc_crm.id, product_id=crm_prod.id)
         db.add(dp)
+        db.commit()
 
         # 6. QUOTATION TEMPLATES
-        print("Seeding Quotation Templates...")
         t1 = QuotationTemplate(id=str(uuid.uuid4()), name="SMB Starter Kit", plan_id=created_plans[0].id, validity_days=30, is_active=True)
         t2 = QuotationTemplate(id=str(uuid.uuid4()), name="Enterprise Suite", plan_id=created_plans[3].id, validity_days=45, is_active=True)
         db.add_all([t1, t2])
-        db.flush()
+        db.commit()
 
         t1_l1 = TemplateLine(template_id=t1.id, product_id=crm_prod.id, quantity=1, unit_price=1200.0)
         t1_l2 = TemplateLine(template_id=t1.id, product_id=email_prod.id, quantity=1, unit_price=150.0)
-        
         odoo_var = product_variants_map[crm_prod.id][1]
         t2_l1 = TemplateLine(template_id=t2.id, product_id=erp_prod.id, quantity=1, unit_price=2500.0)
         t2_l2 = TemplateLine(template_id=t2.id, product_id=crm_prod.id, variant_id=odoo_var.id, quantity=2, unit_price=1760.0)
         t2_l3 = TemplateLine(template_id=t2.id, product_id=storage_prod.id, quantity=1, unit_price=350.0)
         db.add_all([t1_l1, t1_l2, t2_l1, t2_l2, t2_l3])
-        db.flush()
+        db.commit()
+        print("  [OK] Master data, users, taxes, plans & templates seeded.", flush=True)
 
         # 7. SCALE SEEDING: 2,100 SUBSCRIPTIONS & INVOICES
-        print("Generating 2,100 Subscriptions, Invoices, and Payments...")
+        print("Step 3/5: Generating 2,100 Subscriptions & Invoices in memory...", flush=True)
         today = date.today()
 
         statuses_pool = (
@@ -358,11 +255,11 @@ def seed_database():
             ["paused"] * 3
         )
 
-        all_subscriptions = []
-        all_sub_lines = []
-        all_invoices = []
-        all_inv_lines = []
-        all_payments = []
+        all_sub_dicts: list[dict] = []
+        all_sub_line_dicts: list[dict] = []
+        all_inv_dicts: list[dict] = []
+        all_inv_line_dicts: list[dict] = []
+        all_pay_dicts: list[dict] = []
 
         sub_seq = 1
         inv_seq = 1
@@ -375,7 +272,7 @@ def seed_database():
             days_back = random.randint(30, 420)
             start_dt = today - timedelta(days=days_back)
             end_dt = start_dt + timedelta(days=365)
-            
+
             sub_id = str(uuid.uuid4())
             sub_num = f"SUB-{sub_seq:05d}"
             sub_seq += 1
@@ -385,19 +282,19 @@ def seed_database():
                 billed_days = random.randint(15, days_back)
                 billed_thru = start_dt + timedelta(days=billed_days)
 
-            sub = Subscription(
-                id=sub_id,
-                number=sub_num,
-                customer_id=cust.id,
-                plan_id=plan.id,
-                status=sub_status,
-                start_date=start_dt,
-                end_date=end_dt,
-                payment_terms_days=random.choice([15, 30, 45]),
-                billed_through=billed_thru,
-                created_at=datetime.combine(start_dt, datetime.min.time(), tzinfo=timezone.utc),
-            )
-            all_subscriptions.append(sub)
+            payment_terms = random.choice([15, 30, 45])
+            all_sub_dicts.append({
+                "id": sub_id,
+                "number": sub_num,
+                "customer_id": cust.id,
+                "plan_id": plan.id,
+                "status": sub_status,
+                "start_date": start_dt,
+                "end_date": end_dt,
+                "payment_terms_days": payment_terms,
+                "billed_through": billed_thru,
+                "created_at": datetime.combine(start_dt, datetime.min.time(), tzinfo=timezone.utc),
+            })
 
             prod = plan.product
             var = None
@@ -412,17 +309,16 @@ def seed_database():
             line_sub = price * qty
             line_tot = line_sub + (line_sub * tax_rate / 100.0)
 
-            s_line1 = SubscriptionLine(
-                id=str(uuid.uuid4()),
-                subscription_id=sub_id,
-                product_id=prod.id,
-                variant_id=var.id if var else None,
-                quantity=qty,
-                unit_price=price,
-                tax_rate=tax_rate,
-                line_total=round(line_tot, 2),
-            )
-            all_sub_lines.append(s_line1)
+            all_sub_line_dicts.append({
+                "id": str(uuid.uuid4()),
+                "subscription_id": sub_id,
+                "product_id": prod.id,
+                "variant_id": var.id if var else None,
+                "quantity": qty,
+                "unit_price": price,
+                "tax_rate": tax_rate,
+                "line_total": round(line_tot, 2),
+            })
 
             if sub_status in ("active", "closed", "paused") and billed_thru:
                 num_invoices = min(5, max(1, days_back // 30))
@@ -430,8 +326,8 @@ def seed_database():
                     inv_date = start_dt + timedelta(days=inv_idx * 30)
                     if inv_date > today:
                         break
-                    
-                    due_date = inv_date + timedelta(days=sub.payment_terms_days)
+
+                    due_date = inv_date + timedelta(days=payment_terms)
                     p_start = inv_date
                     p_end = p_start + timedelta(days=29)
 
@@ -444,88 +340,85 @@ def seed_database():
                     inv_num = f"INV-{inv_seq:05d}"
                     inv_seq += 1
 
-                    inv = Invoice(
-                        id=inv_id,
-                        number=inv_num,
-                        subscription_id=sub_id,
-                        customer_id=cust.id,
-                        status=inv_status,
-                        invoice_date=inv_date,
-                        due_date=due_date,
-                        period_start=p_start,
-                        period_end=p_end,
-                        subtotal=round(line_sub, 2),
-                        tax_total=round(line_sub * tax_rate / 100.0, 2),
-                        discount_total=0.0,
-                        total=round(line_tot, 2),
-                        payment_terms_days=sub.payment_terms_days,
-                        sent_at=datetime.combine(inv_date, datetime.min.time(), tzinfo=timezone.utc),
-                        created_at=datetime.combine(inv_date, datetime.min.time(), tzinfo=timezone.utc),
-                    )
-                    all_invoices.append(inv)
+                    all_inv_dicts.append({
+                        "id": inv_id,
+                        "number": inv_num,
+                        "subscription_id": sub_id,
+                        "customer_id": cust.id,
+                        "status": inv_status,
+                        "invoice_date": inv_date,
+                        "due_date": due_date,
+                        "period_start": p_start,
+                        "period_end": p_end,
+                        "subtotal": round(line_sub, 2),
+                        "tax_total": round(line_sub * tax_rate / 100.0, 2),
+                        "discount_total": 0.0,
+                        "total": round(line_tot, 2),
+                        "payment_terms_days": payment_terms,
+                        "sent_at": datetime.combine(inv_date, datetime.min.time(), tzinfo=timezone.utc),
+                        "created_at": datetime.combine(inv_date, datetime.min.time(), tzinfo=timezone.utc),
+                    })
 
-                    inv_line = InvoiceLine(
-                        id=str(uuid.uuid4()),
-                        invoice_id=inv_id,
-                        product_id=prod.id,
-                        variant_id=var.id if var else None,
-                        description=f"{prod.name}{' (' + var.attribute_value + ')' if var else ''}",
-                        quantity=qty,
-                        unit_price=price,
-                        tax_rate=tax_rate,
-                        tax_amount=round(line_sub * tax_rate / 100.0, 2),
-                        subtotal=round(line_sub, 2),
-                        total=round(line_tot, 2),
-                    )
-                    all_inv_lines.append(inv_line)
+                    all_inv_line_dicts.append({
+                        "id": str(uuid.uuid4()),
+                        "invoice_id": inv_id,
+                        "product_id": prod.id,
+                        "variant_id": var.id if var else None,
+                        "description": f"{prod.name}{' (' + var.attribute_value + ')' if var else ''}",
+                        "quantity": qty,
+                        "unit_price": price,
+                        "tax_rate": tax_rate,
+                        "tax_amount": round(line_sub * tax_rate / 100.0, 2),
+                        "subtotal": round(line_sub, 2),
+                        "total": round(line_tot, 2),
+                    })
 
                     if inv_status == "paid":
-                        pay_dt = inv_date + timedelta(days=random.randint(1, sub.payment_terms_days))
+                        pay_dt = inv_date + timedelta(days=random.randint(1, payment_terms))
                         if pay_dt > today:
                             pay_dt = today
-                        payment = Payment(
-                            id=str(uuid.uuid4()),
-                            invoice_id=inv_id,
-                            method=random.choice(["bank_transfer", "credit_card", "bank_transfer"]),
-                            amount=round(line_tot, 2),
-                            payment_date=pay_dt,
-                            note=f"Payment received for {inv_num}",
-                            created_at=datetime.combine(pay_dt, datetime.min.time(), tzinfo=timezone.utc),
-                        )
-                        all_payments.append(payment)
+                        all_pay_dicts.append({
+                            "id": str(uuid.uuid4()),
+                            "invoice_id": inv_id,
+                            "method": random.choice(["bank_transfer", "credit_card", "bank_transfer"]),
+                            "amount": round(line_tot, 2),
+                            "payment_date": pay_dt,
+                            "note": f"Payment received for {inv_num}",
+                            "created_at": datetime.combine(pay_dt, datetime.min.time(), tzinfo=timezone.utc),
+                        })
 
-        print(f"Bulk inserting {len(all_subscriptions)} subscriptions...")
-        db.bulk_save_objects(all_subscriptions)
-        db.bulk_save_objects(all_sub_lines)
-        db.commit()
+        print(f"  [OK] Generated {len(all_sub_dicts)} subscriptions, {len(all_inv_dicts)} invoices, and {len(all_pay_dicts)} payments in memory.", flush=True)
 
-        print(f"Bulk inserting {len(all_invoices)} invoices...")
-        db.bulk_save_objects(all_invoices)
-        db.bulk_save_objects(all_inv_lines)
-        db.bulk_save_objects(all_payments)
-        db.commit()
+        print("Step 4/5: Bulk uploading batches to Neon PostgreSQL...", flush=True)
+        chunked_insert(db, Subscription, all_sub_dicts, chunk_size=500, label="Subscriptions")
+        chunked_insert(db, SubscriptionLine, all_sub_line_dicts, chunk_size=500, label="Subscription Lines")
+        chunked_insert(db, Invoice, all_inv_dicts, chunk_size=500, label="Invoices")
+        chunked_insert(db, InvoiceLine, all_inv_line_dicts, chunk_size=500, label="Invoice Lines")
+        chunked_insert(db, Payment, all_pay_dicts, chunk_size=500, label="Payments")
 
+        print("Step 5/5: Writing audit log...", flush=True)
         admin_log = AuditLog(
             id=str(uuid.uuid4()),
             entity_type="system",
             entity_id=admin.id,
             action="system_seeded",
-            new_value={"total_subscriptions": len(all_subscriptions), "total_invoices": len(all_invoices)},
+            new_value={"total_subscriptions": len(all_sub_dicts), "total_invoices": len(all_inv_dicts)},
             user_id=admin.id,
         )
         db.add(admin_log)
         db.commit()
 
-        print(f"\n=======================================================")
-        print(f"  BRIGHTLOOP DATABASE SEED COMPLETE!")
-        print(f"  Subscriptions: {len(all_subscriptions)}")
-        print(f"  Invoices:      {len(all_invoices)}")
-        print(f"  Payments:      {len(all_payments)}")
+        total_sec = time.time() - start_time
+        print("\n=======================================================", flush=True)
+        print(f"  BRIGHTLOOP DATABASE SEED COMPLETE IN {total_sec:.1f}s!", flush=True)
+        print(f"  Subscriptions: {len(all_sub_dicts):,}")
+        print(f"  Invoices:      {len(all_inv_dicts):,}")
+        print(f"  Payments:      {len(all_pay_dicts):,}")
         print(f"  Demo Logins:")
         print(f"    Admin:    admin@brightloop.com / Admin@123!")
         print(f"    Staff:    staff@brightloop.com / Staff@123!")
         print(f"    Customer: customer@brightloop.com / Cust@1234!")
-        print(f"=======================================================\n")
+        print("=======================================================\n", flush=True)
     finally:
         db.close()
 

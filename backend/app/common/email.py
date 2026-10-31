@@ -36,9 +36,10 @@ def send_email(
                 }
             ]
 
-        resend.Emails.send(params)
-        print(f"[Email Sent via Resend] To: {to_email} | Subject: {subject}")
+        res = resend.Emails.send(params)
+        print(f"[Email Sent via Resend] Result: {res} | To: {to_email} | Subject: {subject}", flush=True)
         return True
     except Exception as e:
-        print(f"[Email Warning] Could not send via Resend: {e}")
+        print(f"[Email Warning] Resend API error: {e}", flush=True)
         return False
+

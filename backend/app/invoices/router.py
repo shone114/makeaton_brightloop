@@ -355,8 +355,18 @@ def get_invoice(invoice_id: str, db: Session = Depends(get_db)):
     return format_invoice_response(inv)
 
 
-@router.post("/generate/{subscription_id}", response_model=InvoiceResponse, dependencies=[Depends(require_staff_or_admin)])
-def generate_single_invoice(subscription_id: str, db: Session = Depends(get_db)):
+@router.post("/generate/{subscription_id}", response_model=InvoiceResponse)
+def generate_single_invoice(
+    subscription_id: str,
+    current_user: User = Depends(require_authenticated),
+    db: Session = Depends(get_db),
+):
+    sub = db.query(Subscription).filter(Subscription.id == subscription_id).first()
+    if not sub:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found")
+    if current_user.role == "customer" and sub.customer_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot generate invoice for another customer's subscription.")
+
     invoice = generate_invoice_for_subscription(db, subscription_id)
     if not invoice:
         raise HTTPException(
@@ -452,11 +462,18 @@ def download_invoice_pdf(invoice_id: str, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/{invoice_id}/send", response_model=InvoiceResponse, dependencies=[Depends(require_staff_or_admin)])
-def send_invoice(invoice_id: str, db: Session = Depends(get_db)):
+@router.post("/{invoice_id}/send", response_model=InvoiceResponse)
+def send_invoice(
+    invoice_id: str,
+    current_user: User = Depends(require_authenticated),
+    db: Session = Depends(get_db),
+):
     inv = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not inv:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
+
+    if current_user.role == "customer" and inv.customer_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot send another customer's invoice.")
 
     inv.sent_at = datetime.now(timezone.utc)
     if inv.status == "draft":

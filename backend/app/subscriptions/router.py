@@ -129,10 +129,11 @@ def get_subscription(sub_id: str, db: Session = Depends(get_db)):
 @router.post("", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED)
 def create_subscription(
     payload: SubscriptionCreate,
-    current_user: User = Depends(require_staff_or_admin),
+    current_user: User = Depends(require_authenticated),
     db: Session = Depends(get_db),
 ):
-    customer = db.query(User).filter(User.id == payload.customer_id).first()
+    target_customer_id = current_user.id if current_user.role == "customer" else payload.customer_id
+    customer = db.query(User).filter(User.id == target_customer_id).first()
     if not customer:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Customer not found")
 
@@ -257,12 +258,15 @@ def create_from_template(
 def update_subscription_status(
     sub_id: str,
     payload: SubscriptionStatusUpdate,
-    current_user: User = Depends(require_staff_or_admin),
+    current_user: User = Depends(require_authenticated),
     db: Session = Depends(get_db),
 ):
     sub = db.query(Subscription).filter(Subscription.id == sub_id).first()
     if not sub:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found")
+
+    if current_user.role == "customer" and sub.customer_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot update another customer's subscription.")
 
     target = payload.status.lower()
     current = sub.status.lower()

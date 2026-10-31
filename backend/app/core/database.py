@@ -6,8 +6,10 @@ from app.core.config import settings
 db_url = settings.DATABASE_URL
 if db_url.startswith("sqlite+aiosqlite"):
     db_url = db_url.replace("sqlite+aiosqlite", "sqlite")
-elif db_url.startswith("postgresql+asyncpg"):
-    db_url = db_url.replace("postgresql+asyncpg", "postgresql")
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+elif db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 
 connect_args = {}
 if db_url.startswith("sqlite"):
