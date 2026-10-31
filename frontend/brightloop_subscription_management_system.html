@@ -53,28 +53,39 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
-                    Brightloop <span class="text-xs bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/40">Enterprise OS</span>
+                    Brightloop <span class="text-xs bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/40">Live Cloud</span>
                 </h1>
                 <p class="text-xs text-slate-400">Recurring Billing & Subscription Engine</p>
             </div>
         </div>
 
-        <!-- Role Switcher & Quick Auth Actions -->
+        <!-- Role Switcher, Quick Actions & Auth -->
         <div class="flex items-center gap-4">
+            <!-- One-Click Export & Time Machine -->
+            <div class="hidden xl:flex items-center gap-2">
+                <button onclick="downloadExcel('subscriptions')" title="Download Subscriptions Excel" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-400"></i> Export Subs (.xlsx)
+                </button>
+                <button onclick="downloadExcel('invoices')" title="Download Invoices Excel" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-blue-400"></i> Export Invoices (.xlsx)
+                </button>
+            </div>
+
+            <!-- Role Switcher -->
             <div class="hidden md:flex items-center bg-slate-800 border border-slate-700 rounded-lg p-1 text-xs">
-                <span class="text-slate-400 px-2 font-medium">Preview Role:</span>
+                <span class="text-slate-400 px-2 font-medium">Role:</span>
                 <button onclick="switchRole('admin')" id="role-btn-admin" class="px-3 py-1.5 rounded-md font-medium transition-all bg-indigo-600 text-white shadow-sm">Admin</button>
-                <button onclick="switchRole('staff')" id="role-btn-staff" class="px-3 py-1.5 rounded-md font-medium transition-all text-slate-300 hover:text-white">Internal Staff</button>
+                <button onclick="switchRole('staff')" id="role-btn-staff" class="px-3 py-1.5 rounded-md font-medium transition-all text-slate-300 hover:text-white">Staff</button>
                 <button onclick="switchRole('customer')" id="role-btn-customer" class="px-3 py-1.5 rounded-md font-medium transition-all text-slate-300 hover:text-white">Customer Portal</button>
             </div>
 
             <div class="flex items-center gap-3 border-l border-slate-700 pl-4">
                 <div class="text-right hidden sm:block">
-                    <p id="header-user-name" class="text-xs font-semibold text-slate-200">Alex Morgan (Admin)</p>
-                    <p id="header-user-email" class="text-[10px] text-slate-400">alex@brightloop.io</p>
+                    <p id="header-user-name" class="text-xs font-semibold text-slate-200">Alice Admin</p>
+                    <p id="header-user-email" class="text-[10px] text-slate-400">admin@brightloop.com</p>
                 </div>
                 <button onclick="openAuthModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
-                    <i data-lucide="user-circle" class="w-4 h-4 text-indigo-400"></i> Account & Auth
+                    <i data-lucide="user-circle" class="w-4 h-4 text-indigo-400"></i> Login / Register
                 </button>
             </div>
         </div>
@@ -89,26 +100,26 @@
                 <div>
                     <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">Main Navigation</p>
                     <nav id="sidebar-nav" class="space-y-1">
-                        <!-- Dynamic nav items populated via JS -->
+                        <!-- Populated by JS -->
                     </nav>
                 </div>
 
                 <div id="admin-staff-nav-section">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2">Billing & Catalog</p>
                     <nav id="sidebar-management-nav" class="space-y-1">
-                        <!-- Dynamic management items -->
+                        <!-- Populated by JS -->
                     </nav>
                 </div>
             </div>
 
             <div class="p-4 border-t border-slate-800 bg-slate-950/40">
                 <div class="flex items-center justify-between text-xs text-slate-400">
-                    <span>System Status</span>
+                    <span>Database</span>
                     <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Operational
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Neon Cloud
                     </span>
                 </div>
-                <p class="text-[10px] text-slate-500 mt-1">Response time: &lt; 0.4s</p>
+                <p id="live-db-info" class="text-[10px] text-slate-500 mt-1">PostgreSQL 16 | Latency: ~50ms</p>
             </div>
         </aside>
 
@@ -120,7 +131,7 @@
                 <span class="text-xs font-semibold text-slate-600">Active Role:</span>
                 <select onchange="switchRole(this.value)" id="mobile-role-select" class="text-xs bg-slate-100 border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-800">
                     <option value="admin">Admin</option>
-                    <option value="staff">Internal Staff</option>
+                    <option value="staff">Staff</option>
                     <option value="customer">Customer Portal</option>
                 </select>
             </div>
@@ -129,10 +140,13 @@
             <div id="tab-dashboard" class="tab-content active space-y-6 animate-fade-in">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Finance & Operations Dashboard</h2>
-                        <p class="text-sm text-slate-500">Real-time metrics, recurring revenue, and subscription health overview.</p>
+                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Executive Finance & Billing Dashboard</h2>
+                        <p class="text-sm text-slate-500">Live metrics computed in real-time from Neon cloud PostgreSQL.</p>
                     </div>
                     <div class="flex items-center gap-3">
+                        <button onclick="triggerBulkInvoicing()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4"></i> Run Billing Run (Batch)
+                        </button>
                         <button onclick="openModal('new-sub-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i> New Subscription
                         </button>
@@ -144,9 +158,9 @@
                     <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Active Subscriptions</p>
-                            <h3 id="metric-active-subs" class="text-2xl font-bold text-slate-900 mt-1">1,284</h3>
+                            <h3 id="metric-active-subs" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
                             <span class="text-xs text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +12% this month
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Live in database
                             </span>
                         </div>
                         <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl">
@@ -156,10 +170,10 @@
 
                     <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Monthly Recurring Revenue</p>
-                            <h3 id="metric-mrr" class="text-2xl font-bold text-slate-900 mt-1">$48,250</h3>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">MRR (Monthly Recurring)</p>
+                            <h3 id="metric-mrr" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
                             <span class="text-xs text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +8.4% MRR growth
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Normalized across plans
                             </span>
                         </div>
                         <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
@@ -169,9 +183,9 @@
 
                     <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Revenue (YTD)</p>
-                            <h3 id="metric-revenue" class="text-2xl font-bold text-slate-900 mt-1">$432,900</h3>
-                            <span class="text-xs text-slate-500 font-medium mt-1 block">Processed seamlessly</span>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Paid Revenue</p>
+                            <h3 id="metric-revenue" class="text-2xl font-bold text-slate-900 mt-1">--</h3>
+                            <span class="text-xs text-slate-500 font-medium mt-1 block">Settled via payments</span>
                         </div>
                         <div class="bg-blue-50 text-blue-600 p-3 rounded-xl">
                             <i data-lucide="credit-card" class="w-6 h-6"></i>
@@ -181,9 +195,9 @@
                     <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
                             <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Overdue Invoices</p>
-                            <h3 id="metric-overdue" class="text-2xl font-bold text-rose-600 mt-1">$4,120</h3>
-                            <span class="text-xs text-rose-500 font-semibold flex items-center gap-1 mt-1">
-                                <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> 14 invoices overdue
+                            <h3 id="metric-overdue" class="text-2xl font-bold text-rose-600 mt-1">--</h3>
+                            <span id="metric-overdue-desc" class="text-xs text-rose-500 font-semibold flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Past payment due date
                             </span>
                         </div>
                         <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
@@ -192,12 +206,12 @@
                     </div>
                 </div>
 
-                <!-- Recent Subscriptions & Quick Actions Table -->
+                <!-- Recent Subscriptions Table -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-slate-900 text-base">Recent Subscriptions</h3>
-                            <button onclick="switchTab('subscriptions')" class="text-xs text-indigo-600 font-semibold hover:underline">View All</button>
+                            <button onclick="switchTab('subscriptions')" class="text-xs text-indigo-600 font-semibold hover:underline">View All (Pipeline)</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
@@ -211,44 +225,44 @@
                                     </tr>
                                 </thead>
                                 <tbody id="dashboard-subs-tbody" class="text-xs divide-y divide-slate-100">
-                                    <!-- Populated by JS -->
+                                    <tr><td colspan="5" class="py-6 text-center text-slate-400">Loading subscriptions from cloud...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Quick System Health & Alerts -->
+                    <!-- Quick System Health & Engine Cards -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col justify-between">
                         <div>
-                            <h3 class="font-bold text-slate-900 text-base mb-3">Billing Month Operations</h3>
-                            <p class="text-xs text-slate-500 mb-4">Current billing cycle is active. Automated invoices are scheduled for generation.</p>
+                            <h3 class="font-bold text-slate-900 text-base mb-3">Enterprise Billing Engine</h3>
+                            <p class="text-xs text-slate-500 mb-4">Automated idempotent invoicing, tax computation, and Resend transactional email ready.</p>
                             
                             <div class="space-y-3">
                                 <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-3">
                                     <div class="bg-indigo-100 text-indigo-600 p-2 rounded-lg shrink-0 mt-0.5">
-                                        <i data-lucide="zap" class="w-4 h-4"></i>
+                                        <i data-lucide="shield-check" class="w-4 h-4"></i>
                                     </div>
                                     <div>
-                                        <p class="text-xs font-semibold text-slate-800">Automated Tax Calculation</p>
-                                        <p class="text-[11px] text-slate-500">Active tax rules applied to all outgoing invoices.</p>
+                                        <p class="text-xs font-semibold text-slate-800">Double-Billing Guard</p>
+                                        <p class="text-[11px] text-slate-500">Idempotency check prevents duplicate period generation.</p>
                                     </div>
                                 </div>
 
                                 <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-3">
                                     <div class="bg-emerald-100 text-emerald-600 p-2 rounded-lg shrink-0 mt-0.5">
-                                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                        <i data-lucide="mail" class="w-4 h-4"></i>
                                     </div>
                                     <div>
-                                        <p class="text-xs font-semibold text-slate-800">Renewal Reminders</p>
-                                        <p class="text-[11px] text-slate-500">100% of renewals tracked without manual intervention.</p>
+                                        <p class="text-xs font-semibold text-slate-800">Resend Email & PDF Engine</p>
+                                        <p class="text-[11px] text-slate-500">Dispatches real branded invoice PDFs to inbox.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-xs text-slate-500">Engine Speed</span>
-                            <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">&lt; 1.2s query latency</span>
+                            <span class="text-xs text-slate-500">Engine Benchmark</span>
+                            <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">&lt; 100ms response</span>
                         </div>
                     </div>
                 </div>
@@ -259,7 +273,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Products & Plans Management</h2>
-                        <p class="text-sm text-slate-500">Configure catalog products, brand variants, billing frequencies, and discount engines.</p>
+                        <p class="text-sm text-slate-500">Configure catalog products, brand variants (e.g. Odoo +$560), billing frequencies, and discount rules.</p>
                     </div>
                     <div id="admin-product-actions" class="flex items-center gap-3">
                         <button onclick="openModal('new-product-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
@@ -274,8 +288,8 @@
                 <!-- Products Table -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-slate-900 text-base">Product Catalog & Variants</h3>
-                        <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">Odoo Brand Add-on Active ($560)</span>
+                        <h3 class="font-bold text-slate-900 text-base">Product Catalog & Brand Variants</h3>
+                        <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">Odoo Brand Variant (+ $560.00) Supported</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -285,12 +299,12 @@
                                     <th class="py-3 px-3">Type</th>
                                     <th class="py-3 px-3">Sales Price</th>
                                     <th class="py-3 px-3">Cost Price</th>
-                                    <th class="py-3 px-3">Variant Note</th>
+                                    <th class="py-3 px-3">Variants / Addons</th>
                                     <th class="py-3 px-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="products-tbody" class="text-xs divide-y divide-slate-100">
-                                <!-- Populated via JS -->
+                                <tr><td colspan="6" class="py-6 text-center text-slate-400">Loading catalog from cloud...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -300,7 +314,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-slate-900 text-base">Subscription Plans</h3>
+                            <h3 class="font-bold text-slate-900 text-base">Billing Plans</h3>
                             <button onclick="openModal('new-plan-modal')" class="text-xs text-indigo-600 font-semibold hover:underline">+ New Plan</button>
                         </div>
                         <div class="space-y-3" id="plans-list-container">
@@ -324,8 +338,8 @@
             <div id="tab-subscriptions" class="tab-content space-y-6 animate-fade-in">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Quotations & Subscriptions Pipeline</h2>
-                        <p class="text-sm text-slate-500">Track full subscription lifecycle: Draft -> Quotation -> Confirmed -> Active -> Closed.</p>
+                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Subscriptions Pipeline & Quotations</h2>
+                        <p class="text-sm text-slate-500">Strict state machine: Draft &rarr; Quotation &rarr; Confirmed &rarr; Active &rarr; Closed/Paused.</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="openModal('new-sub-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
@@ -338,14 +352,15 @@
                 <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="relative w-full sm:w-80">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-                        <input type="text" id="sub-search-input" oninput="filterSubscriptions()" placeholder="Search customer or subscription #..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="sub-search-input" oninput="filterSubscriptionsSearch()" placeholder="Search customer or subscription #..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500">
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
                         <button onclick="filterSubStatus('ALL')" id="filter-btn-ALL" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white">All</button>
-                        <button onclick="filterSubStatus('Draft')" id="filter-btn-Draft" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Draft</button>
-                        <button onclick="filterSubStatus('Quotation')" id="filter-btn-Quotation" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Quotation</button>
-                        <button onclick="filterSubStatus('Active')" id="filter-btn-Active" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Active</button>
-                        <button onclick="filterSubStatus('Closed')" id="filter-btn-Closed" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Closed</button>
+                        <button onclick="filterSubStatus('draft')" id="filter-btn-draft" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Draft</button>
+                        <button onclick="filterSubStatus('quotation')" id="filter-btn-quotation" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Quotation</button>
+                        <button onclick="filterSubStatus('confirmed')" id="filter-btn-confirmed" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Confirmed</button>
+                        <button onclick="filterSubStatus('active')" id="filter-btn-active" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Active</button>
+                        <button onclick="filterSubStatus('closed')" id="filter-btn-closed" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">Closed</button>
                     </div>
                 </div>
 
@@ -358,14 +373,14 @@
                                     <th class="py-3 px-3">Sub #</th>
                                     <th class="py-3 px-3">Customer</th>
                                     <th class="py-3 px-3">Plan</th>
-                                    <th class="py-3 px-3">Start Date</th>
-                                    <th class="py-3 px-3">Payment Terms</th>
+                                    <th class="py-3 px-3">Period</th>
+                                    <th class="py-3 px-3">Terms</th>
                                     <th class="py-3 px-3">Status</th>
                                     <th class="py-3 px-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="subscriptions-tbody" class="text-xs divide-y divide-slate-100">
-                                <!-- Populated via JS -->
+                                <tr><td colspan="7" class="py-6 text-center text-slate-400">Loading subscriptions...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -377,11 +392,11 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Billing & Invoicing System</h2>
-                        <p class="text-sm text-slate-500">Auto-generate invoices, compute taxes, track payments, and chase overdue revenue.</p>
+                        <p class="text-sm text-slate-500">Auto-generate invoices, compute taxes, track payments, download branded PDFs, and send via Resend.</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button onclick="generateMonthlyInvoices()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
-                            <i data-lucide="receipt" class="w-4 h-4"></i> Run Billing Day (Batch Invoicing)
+                        <button onclick="triggerBulkInvoicing()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-4 h-4"></i> Run Billing Run (Batch)
                         </button>
                     </div>
                 </div>
@@ -389,15 +404,15 @@
                 <!-- Invoices Table -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-slate-900 text-base">Generated Invoices & Payment Ledger</h3>
+                        <h3 class="font-bold text-slate-900 text-base">Generated Invoices Ledger</h3>
                         <div class="flex items-center gap-2">
-                            <span class="text-xs text-slate-500">Filter Status:</span>
-                            <select onchange="filterInvoices(this.value)" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 font-medium text-slate-700">
+                            <span class="text-xs text-slate-500">Status Filter:</span>
+                            <select onchange="filterInvoices(this.value)" id="invoice-filter-select" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 font-medium text-slate-700">
                                 <option value="ALL">All Invoices</option>
-                                <option value="Draft">Draft</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="Paid">Paid</option>
-                                <option value="Overdue">Overdue</option>
+                                <option value="draft">Draft</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="paid">Paid</option>
+                                <option value="overdue">Overdue</option>
                             </select>
                         </div>
                     </div>
@@ -415,7 +430,7 @@
                                 </tr>
                             </thead>
                             <tbody id="invoices-tbody" class="text-xs divide-y divide-slate-100">
-                                <!-- Populated via JS -->
+                                <tr><td colspan="7" class="py-6 text-center text-slate-400">Loading invoices ledger...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -427,26 +442,26 @@
                 <div class="bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
                     <div class="relative z-10">
                         <span class="bg-indigo-500/30 text-indigo-300 text-xs px-3 py-1 rounded-full font-medium border border-indigo-400/30">Customer Self-Service Portal</span>
-                        <h2 class="text-2xl font-bold mt-2">Welcome back, Acme Corp!</h2>
-                        <p class="text-slate-300 text-sm mt-1 max-w-xl">Manage your active subscriptions, download invoices, switch add-on variants, and update payment methods effortlessly.</p>
+                        <h2 id="portal-greeting" class="text-2xl font-bold mt-2">Welcome to Brightloop Customer Portal</h2>
+                        <p class="text-slate-300 text-sm mt-1 max-w-xl">Inspect your active subscriptions, download official PDF invoices, and review account balance in real-time.</p>
                     </div>
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center relative z-10 shrink-0">
-                        <p class="text-xs text-slate-300">Next Automatic Billing</p>
-                        <p class="text-xl font-bold text-white mt-0.5">Nov 15, 2026</p>
-                        <p class="text-[11px] text-emerald-400 mt-1 font-medium">Auto-Pay Enabled (Visa •••• 4242)</p>
+                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center relative z-10 shrink-0 min-w-[200px]">
+                        <p class="text-xs text-slate-300">Outstanding Balance</p>
+                        <p id="portal-balance-due" class="text-2xl font-bold text-white mt-0.5">$0.00</p>
+                        <p id="portal-total-paid" class="text-[11px] text-emerald-400 mt-1 font-medium">Total Paid: $0.00</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-                        <h3 class="font-bold text-slate-900 text-base mb-4">My Active Subscriptions</h3>
+                        <h3 class="font-bold text-slate-900 text-base mb-4">My Subscriptions</h3>
                         <div id="portal-subs-container" class="space-y-4">
                             <!-- Populated via JS -->
                         </div>
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-                        <h3 class="font-bold text-slate-900 text-base mb-4">Recent Billing & Invoices</h3>
+                        <h3 class="font-bold text-slate-900 text-base mb-4">My Invoices & PDF Downloads</h3>
                         <div id="portal-invoices-container" class="space-y-3">
                             <!-- Populated via JS -->
                         </div>
@@ -458,11 +473,11 @@
             <div id="tab-staff" class="tab-content space-y-6 animate-fade-in">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Internal Staff Directory & Permissions</h2>
-                        <p class="text-sm text-slate-500">Only Admins can provision internal staff members and manage permissions.</p>
+                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Internal Staff Directory & Roles</h2>
+                        <p class="text-sm text-slate-500">Only Admins can provision internal staff members and manage roles.</p>
                     </div>
                     <button onclick="openModal('new-staff-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
-                        <i data-lucide="user-plus" class="w-4 h-4"></i> Add New Staff Member
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Add Staff Member
                     </button>
                 </div>
 
@@ -475,11 +490,10 @@
                                     <th class="py-3 px-3">Email</th>
                                     <th class="py-3 px-3">Role</th>
                                     <th class="py-3 px-3">Assigned Permissions</th>
-                                    <th class="py-3 px-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="staff-tbody" class="text-xs divide-y divide-slate-100">
-                                <!-- Populated via JS -->
+                                <tr><td colspan="4" class="py-6 text-center text-slate-400">Loading staff directory...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -503,7 +517,7 @@
                     <i data-lucide="lock" class="w-6 h-6"></i>
                 </div>
                 <h3 class="text-xl font-bold text-slate-900">Brightloop Authentication</h3>
-                <p class="text-xs text-slate-500 mt-1">Secure account access & password policy verification</p>
+                <p class="text-xs text-slate-500 mt-1">Live JWT authentication against cloud backend</p>
             </div>
 
             <!-- Tabs for Sign In / Sign Up / Reset -->
@@ -517,11 +531,11 @@
             <form id="form-signin" onsubmit="handleSignIn(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
-                    <input type="email" id="signin-email" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="user@company.com">
+                    <input type="email" id="signin-email" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="admin@brightloop.com" value="admin@brightloop.com">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" id="signin-password" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="••••••••">
+                    <input type="password" id="signin-password" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="Admin@123!" value="Admin@123!">
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-xs transition shadow-sm">Sign In to Dashboard</button>
             </form>
@@ -529,11 +543,11 @@
             <!-- Sign Up Form -->
             <form id="form-signup" onsubmit="handleSignUp(event)" class="space-y-4 hidden">
                 <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Company / User Name</label>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Full Name / Company Name</label>
                     <input type="text" id="signup-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="Acme Industries">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Email Address (Unique)</label>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
                     <input type="email" id="signup-email" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="billing@acme.com">
                 </div>
                 <div>
@@ -551,10 +565,10 @@
 
             <!-- Reset Password Form -->
             <form id="form-reset" onsubmit="handlePasswordReset(event)" class="space-y-4 hidden">
-                <p class="text-xs text-slate-500">Enter your registered email address and we will dispatch a secure reset link instantly.</p>
+                <p class="text-xs text-slate-500">Enter your registered email address to request a secure reset token.</p>
                 <div>
                     <label class="block text-xs font-medium text-slate-700 mb-1">Registered Email</label>
-                    <input type="email" id="reset-email" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="alex@brightloop.io">
+                    <input type="email" id="reset-email" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500" placeholder="user@example.com">
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-xs transition shadow-sm">Send Reset Link</button>
             </form>
@@ -576,17 +590,17 @@
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Product Type</label>
                         <select id="prod-type" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="Software License">Software License</option>
-                            <option value="Add-on Module">Add-on Module</option>
-                            <option value="Professional Service">Professional Service</option>
+                            <option value="software">Software</option>
+                            <option value="addon">Add-on</option>
+                            <option value="service">Service</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Brand Variant Add-on</label>
-                        <select id="prod-variant" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="None">None (Standard)</option>
-                            <option value="Odoo Brand (+$560)">Odoo Brand (+$560)</option>
-                            <option value="Custom Brand (+$250)">Custom Brand (+$250)</option>
+                        <label class="block font-medium text-slate-700 mb-1">Brand Variant (Optional)</label>
+                        <select id="prod-variant-type" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <option value="none">None (Standard)</option>
+                            <option value="odoo">Odoo Integration Edition (+$560)</option>
+                            <option value="enterprise">Enterprise Multi-tenant (+$1,200)</option>
                         </select>
                     </div>
                 </div>
@@ -602,9 +616,9 @@
                 </div>
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Notes / Description</label>
-                    <textarea id="prod-notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="Includes tier-1 priority support and multi-region deployment..."></textarea>
+                    <textarea id="prod-notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="Full suite subscription product..."></textarea>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Save Product</button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Save Product to Cloud</button>
             </form>
         </div>
     </div>
@@ -614,25 +628,31 @@
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative animate-fade-in">
             <button onclick="closeModal('new-plan-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             <h3 class="text-xl font-bold text-slate-900 mb-1">Configure Subscription Plan</h3>
-            <p class="text-xs text-slate-500 mb-4">Set billing frequency, availability dates, and lifecycle behavior.</p>
+            <p class="text-xs text-slate-500 mb-4">Set billing frequency, availability dates, and recurring behavior.</p>
             <form onsubmit="handleCreatePlan(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Plan Title</label>
-                    <input type="text" id="plan-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="Annual Enterprise Plan">
+                    <input type="text" id="plan-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="e.g. Pro Monthly">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-700 mb-1">Select Base Product</label>
+                    <select id="plan-product-select" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <!-- Populated via JS -->
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Billing Frequency</label>
                         <select id="plan-freq" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="Monthly">Monthly</option>
-                            <option value="Yearly">Yearly</option>
-                            <option value="Weekly">Weekly</option>
-                            <option value="Daily">Daily</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="daily">Daily</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Minimum Quantity</label>
-                        <input type="number" id="plan-minqty" value="1" min="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <label class="block font-medium text-slate-700 mb-1">Plan Amount ($)</label>
+                        <input type="number" id="plan-amount" value="500.00" step="0.01" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -644,14 +664,6 @@
                         <label class="block font-medium text-slate-700 mb-1">Available Until</label>
                         <input type="date" id="plan-end" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
-                </div>
-                <div>
-                    <label class="block font-medium text-slate-700 mb-1">Lifecycle Behavior</label>
-                    <select id="plan-lifecycle" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                        <option value="Auto-close on end date">Auto-close on end date</option>
-                        <option value="Auto-renew monthly">Auto-renew monthly</option>
-                        <option value="Allow manual pause/close">Allow manual pause/close</option>
-                    </select>
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Save Plan Configuration</button>
             </form>
@@ -673,8 +685,8 @@
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Discount Type</label>
                         <select id="disc-type" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="Percentage (%)">Percentage (%)</option>
-                            <option value="Fixed Amount ($)">Fixed Amount ($)</option>
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount ($)</option>
                         </select>
                     </div>
                     <div>
@@ -684,8 +696,8 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Min. Quantity</label>
-                        <input type="number" id="disc-minqty" value="5" min="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <label class="block font-medium text-slate-700 mb-1">Min. Purchase Amount ($)</label>
+                        <input type="number" id="disc-minamt" value="500" min="0" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Usage Limit</label>
@@ -712,26 +724,27 @@
         <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 relative animate-fade-in">
             <button onclick="closeModal('new-sub-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             <h3 class="text-xl font-bold text-slate-900 mb-1">Create Subscription or Quotation</h3>
-            <p class="text-xs text-slate-500 mb-4">Start from a quotation template or build custom product lines.</p>
+            <p class="text-xs text-slate-500 mb-4">Select plan, customer, and term parameters to build quotation.</p>
             <form onsubmit="handleCreateSubscription(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block font-medium text-slate-700 mb-1">Customer Name</label>
-                    <input type="text" id="sub-cust-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="Starlight Retail Ltd">
+                    <label class="block font-medium text-slate-700 mb-1">Select Customer</label>
+                    <select id="sub-cust-select" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <!-- Populated via JS -->
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Select Plan</label>
-                        <select id="sub-plan-select" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <select id="sub-plan-select" onchange="onPlanSelectionChanged()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                             <!-- Populated via JS -->
                         </select>
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Initial Status</label>
-                        <select id="sub-status-select" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="Draft">Draft</option>
-                            <option value="Quotation">Quotation</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Active">Active</option>
+                        <label class="block font-medium text-slate-700 mb-1">Payment Terms</label>
+                        <select id="sub-terms" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <option value="15">Net 15 Days</option>
+                            <option value="30">Net 30 Days</option>
+                            <option value="45">Net 45 Days</option>
                         </select>
                     </div>
                 </div>
@@ -741,19 +754,17 @@
                         <input type="date" id="sub-start-date" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Payment Terms</label>
-                        <select id="sub-terms" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                            <option value="Net 30">Net 30</option>
-                            <option value="Net 15">Net 15</option>
-                            <option value="Due on Receipt">Due on Receipt</option>
-                        </select>
+                        <label class="block font-medium text-slate-700 mb-1">Quantity</label>
+                        <input type="number" id="sub-qty" value="1" min="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-medium text-slate-700 mb-1">Product Lines & Quantity</label>
-                    <input type="text" id="sub-lines" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" value="Enterprise Software License x 10 + Odoo Brand Addon">
+                    <label class="block font-medium text-slate-700 mb-1">Brand Variant / Edition (Optional)</label>
+                    <select id="sub-variant-select" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                        <option value="">Base / Standard Edition (+ $0.00)</option>
+                    </select>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Save Subscription</button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Save Subscription to Cloud</button>
             </form>
         </div>
     </div>
@@ -763,16 +774,15 @@
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative animate-fade-in">
             <button onclick="closeModal('record-payment-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             <h3 class="text-xl font-bold text-slate-900 mb-1">Record Payment Against Invoice</h3>
-            <p id="pay-inv-subtitle" class="text-xs text-slate-500 mb-4">Invoice #INV-2026-1001</p>
+            <p id="pay-inv-subtitle" class="text-xs text-slate-500 mb-4">Invoice #INV-XXXXX</p>
             <form onsubmit="handleRecordPayment(event)" class="space-y-4 text-xs">
                 <input type="hidden" id="pay-invoice-id">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Payment Method</label>
                     <select id="pay-method" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                        <option value="Credit Card">Credit Card (Stripe)</option>
-                        <option value="Bank Transfer">Bank Transfer (ACH/SEPA)</option>
-                        <option value="PayPal">PayPal Business</option>
-                        <option value="Wire Transfer">Wire Transfer</option>
+                        <option value="credit_card">Credit Card (Stripe)</option>
+                        <option value="bank_transfer">Bank Transfer (ACH / SEPA)</option>
+                        <option value="paypal">PayPal / Online Settlement</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -787,7 +797,7 @@
                 </div>
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Reference Note / Bank Ref</label>
-                    <input type="text" id="pay-note" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="TXN-99827361 matched via bank feed">
+                    <input type="text" id="pay-note" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="e.g. TXN-99827361 matched via settlement">
                 </div>
                 <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Record & Mark Invoice Paid</button>
             </form>
@@ -810,31 +820,11 @@
                     <input type="email" id="staff-email" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="sarah@brightloop.io">
                 </div>
                 <div>
-                    <label class="block font-medium text-slate-700 mb-1">Access Role</label>
-                    <select id="staff-role" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
-                        <option value="Internal Staff (Billing & Support)">Internal Staff (Billing & Support)</option>
-                        <option value="Sales Representative">Sales Representative</option>
-                        <option value="Finance Lead">Finance Lead</option>
-                    </select>
+                    <label class="block font-medium text-slate-700 mb-1">Password (&gt;8 chars, uppercase, lowercase, special)</label>
+                    <input type="password" id="staff-password" value="StaffPass123!" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm">Provision Staff Account</button>
             </form>
-        </div>
-    </div>
-
-    <!-- Confirm Revoke Access Modal -->
-    <div id="confirm-revoke-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative animate-fade-in text-center">
-            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="user-x" class="w-6 h-6"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 mb-1">Revoke Staff Access?</h3>
-            <p id="revoke-staff-desc" class="text-xs text-slate-500 mb-6">Are you sure you want to revoke system access for this staff member?</p>
-            <input type="hidden" id="pending-revoke-staff-id">
-            <div class="flex gap-3">
-                <button onclick="closeModal('confirm-revoke-modal')" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition">Cancel</button>
-                <button onclick="confirmRevokeStaff()" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl text-xs transition shadow-sm">Confirm Revoke</button>
-            </div>
         </div>
     </div>
 
@@ -852,22 +842,23 @@
                     <p class="text-xs text-slate-400 mt-1">100 SaaS Boulevard, Suite 400, San Francisco, CA</p>
                 </div>
                 <div class="text-right">
-                    <h3 id="inv-prev-number" class="text-lg font-bold text-indigo-600">INV-2026-1001</h3>
-                    <p id="inv-prev-date" class="text-xs text-slate-500">Date: Oct 31, 2026</p>
-                    <p id="inv-prev-status" class="mt-1 inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">Paid</p>
+                    <h3 id="inv-prev-number" class="text-lg font-bold text-indigo-600">INV-XXXXX</h3>
+                    <p id="inv-prev-date" class="text-xs text-slate-500">Date: --</p>
+                    <p id="inv-prev-status" class="mt-1 inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">Confirmed</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-6 mb-6 text-xs">
                 <div>
                     <p class="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-1">Billed To:</p>
-                    <p id="inv-prev-customer" class="font-semibold text-slate-800 text-sm">Acme Corporation</p>
-                    <p class="text-slate-500">billing@acmecorp.com</p>
-                    <p class="text-slate-500">Payment Terms: Net 30</p>
+                    <p id="inv-prev-customer" class="font-semibold text-slate-800 text-sm">--</p>
+                    <p id="inv-prev-email" class="text-slate-500">--</p>
+                    <p id="inv-prev-terms" class="text-slate-500">Payment Terms: 15 Days</p>
                 </div>
                 <div class="text-right">
                     <p class="font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-1">Due Date:</p>
-                    <p id="inv-prev-duedate" class="font-semibold text-slate-800 text-sm">Nov 30, 2026</p>
+                    <p id="inv-prev-duedate" class="font-semibold text-slate-800 text-sm">--</p>
+                    <p class="text-slate-500 text-[11px] mt-1" id="inv-prev-period">Period: -- to --</p>
                 </div>
             </div>
 
@@ -889,132 +880,157 @@
                 <div class="w-64 space-y-2 text-xs">
                     <div class="flex justify-between text-slate-500">
                         <span>Subtotal</span>
-                        <span id="inv-prev-subtotal">$1,200.00</span>
+                        <span id="inv-prev-subtotal">$0.00</span>
                     </div>
                     <div class="flex justify-between text-slate-500">
-                        <span>Tax (8.5% Automatic Rule)</span>
-                        <span id="inv-prev-tax">$102.00</span>
+                        <span>Tax Total</span>
+                        <span id="inv-prev-tax">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500">
+                        <span>Discounts</span>
+                        <span id="inv-prev-discount">-$0.00</span>
                     </div>
                     <div class="flex justify-between font-bold text-slate-900 text-sm pt-2 border-t border-slate-200">
                         <span>Total Due</span>
-                        <span id="inv-prev-total">$1,302.00</span>
+                        <span id="inv-prev-total">$0.00</span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center justify-between border-t border-slate-100 pt-4">
-                <p class="text-[11px] text-slate-400">Thank you for your recurring subscription business with Brightloop.</p>
+                <p class="text-[11px] text-slate-400">Branded PDF generated dynamically by Brightloop Engine.</p>
                 <div class="flex gap-2">
-                    <button onclick="printInvoice()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center gap-1.5">
-                        <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print / PDF
+                    <button onclick="downloadActiveInvoicePdf()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF
                     </button>
-                    <button onclick="sendInvoiceEmail()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-xs flex items-center gap-1.5">
-                        <i data-lucide="send" class="w-3.5 h-3.5"></i> Send to Customer
+                    <button onclick="sendInvoiceEmail()" id="btn-send-invoice" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="send" class="w-3.5 h-3.5"></i> Send via Resend
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
+    <!-- ================= JAVASCRIPT: REAL BACKEND API INTEGRATION ================= -->
     <script>
-        // --- Application State Store ---
+        // API Base URL Detection (works both served from FastAPI :8000 or opened standalone)
+        const API_BASE = window.location.origin.includes(':8000') ? '/api/v1' : 'http://localhost:8000/api/v1';
+
+        // Global State Store (100% connected to backend)
         let AppState = {
+            token: localStorage.getItem('brightloop_token') || '',
             currentUser: {
-                name: "Alex Morgan",
-                email: "alex@brightloop.io",
-                role: "admin" // admin, staff, customer
+                id: '',
+                name: 'Alice Admin',
+                email: 'admin@brightloop.com',
+                role: 'admin' // admin, staff, customer
             },
-            products: [
-                { id: "p1", name: "Enterprise Cloud ERP", type: "Software License", salesPrice: 1200, costPrice: 350, notes: "Includes core ledger and inventory", variant: "Odoo Brand (+$560)" },
-                { id: "p2", name: "Advanced Analytics Module", type: "Add-on Module", salesPrice: 350, costPrice: 80, notes: "Real-time BI dashboards", variant: "None" },
-                { id: "p3", name: "Priority 24/7 Support", type: "Professional Service", salesPrice: 500, costPrice: 150, notes: "Dedicated SLA response", variant: "None" }
-            ],
-            plans: [
-                { id: "pl1", name: "Annual Enterprise Plan", billingFrequency: "Yearly", minQty: 5, startDate: "2026-01-01", endDate: "2027-01-01", lifecycle: "Auto-renew monthly" },
-                { id: "pl2", name: "Monthly Standard Plan", billingFrequency: "Monthly", minQty: 1, startDate: "2026-03-01", endDate: "2026-12-31", lifecycle: "Auto-close on end date" }
-            ],
-            discounts: [
-                { id: "d1", name: "Volume Seats Discount", type: "Percentage (%)", value: 15, minQty: 10, limit: 250, count: 42, start: "2026-01-01", end: "2026-12-31" },
-                { id: "d2", name: "Early Q3 Promo", type: "Fixed Amount ($)", value: 100, minQty: 1, limit: 50, count: 18, start: "2026-07-01", end: "2026-09-30" }
-            ],
-            subscriptions: [
-                { id: "sub-101", subNumber: "SUB-2026-001", customerName: "Acme Corporation", customerEmail: "billing@acmecorp.com", planId: "pl1", startDate: "2026-03-01", endDate: "2027-03-01", paymentTerms: "Net 30", status: "Active", lines: "Enterprise Cloud ERP x 10" },
-                { id: "sub-102", subNumber: "SUB-2026-002", customerName: "Starlight Retail", customerEmail: "finance@starlight.com", planId: "pl2", startDate: "2026-10-01", endDate: "2026-11-01", paymentTerms: "Net 15", status: "Quotation", lines: "Advanced Analytics Module x 3" },
-                { id: "sub-103", subNumber: "SUB-2026-003", customerName: "Global Logistics Inc", customerEmail: "accounts@globallogistics.io", planId: "pl1", startDate: "2026-02-15", endDate: "2027-02-15", paymentTerms: "Due on Receipt", status: "Active", lines: "Enterprise Cloud ERP x 25 + Odoo Brand" },
-                { id: "sub-104", subNumber: "SUB-2026-004", customerName: "Vertex Media", customerEmail: "pay@vertexmedia.net", planId: "pl2", startDate: "2026-09-10", endDate: "2026-10-10", paymentTerms: "Net 30", status: "Draft", lines: "Priority 24/7 Support x 2" }
-            ],
-            invoices: [
-                { id: "inv-1", invoiceNumber: "INV-2026-1001", subscriptionId: "sub-101", customerName: "Acme Corporation", date: "2026-10-01", dueDate: "2026-10-31", status: "Paid", subtotal: 12000, tax: 1020, total: 13020, lines: [{desc: "Enterprise Cloud ERP (x10)", qty: 10, price: 1200}] },
-                { id: "inv-2", invoiceNumber: "INV-2026-1002", subscriptionId: "sub-103", customerName: "Global Logistics Inc", date: "2026-10-05", dueDate: "2026-11-05", status: "Confirmed", subtotal: 31500, tax: 2677.5, total: 34177.5, lines: [{desc: "Enterprise Cloud ERP & Brand (x25)", qty: 25, price: 1260}] },
-                { id: "inv-3", invoiceNumber: "INV-2026-0980", subscriptionId: "sub-103", customerName: "Global Logistics Inc", date: "2026-09-05", dueDate: "2026-10-05", status: "Overdue", subtotal: 4120, tax: 350.2, total: 4470.2, lines: [{desc: "Professional Services & Addons", qty: 4, price: 1030}] }
-            ],
-            staffMembers: [
-                { id: "st-1", name: "Sarah Jenkins", email: "sarah@brightloop.io", role: "Internal Staff (Billing & Support)" },
-                { id: "st-2", name: "David Ross", email: "david@brightloop.io", role: "Sales Representative" },
-                { id: "st-3", name: "Elena Vance", email: "elena@brightloop.io", role: "Finance Lead" }
-            ],
-            activeFilterStatus: "ALL",
-            activeInvoiceFilter: "ALL"
+            dashboardStats: {},
+            products: [],
+            plans: [],
+            discounts: [],
+            taxes: [],
+            customers: [],
+            subscriptions: [],
+            invoices: [],
+            staffMembers: [],
+            activeFilterStatus: 'ALL',
+            activeInvoiceFilter: 'ALL',
+            searchQuery: '',
+            currentPreviewInvoice: null
         };
 
-        // --- Initialization on Load ---
-        window.onload = function() {
-            lucide.createIcons();
-            renderAll();
-            // Set default date fields in modals to today
-            const todayStr = new Date().toISOString().split('T')[0];
-            if(document.getElementById('plan-start')) document.getElementById('plan-start').value = todayStr;
-            if(document.getElementById('plan-end')) document.getElementById('plan-end').value = new Date(Date.now() + 31536000000).toISOString().split('T')[0];
-            if(document.getElementById('disc-start')) document.getElementById('disc-start').value = todayStr;
-            if(document.getElementById('disc-end')) document.getElementById('disc-end').value = new Date(Date.now() + 7776000000).toISOString().split('T')[0];
-            if(document.getElementById('sub-start-date')) document.getElementById('sub-start-date').value = todayStr;
-            if(document.getElementById('pay-date')) document.getElementById('pay-date').value = todayStr;
-        };
+        // --- HTTP API Client with Auto-Bearer Headers ---
+        async function apiRequest(endpoint, options = {}) {
+            const url = `${API_BASE}${endpoint}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            };
 
-        // --- Role Switcher Logic ---
-        function switchRole(role) {
-            AppState.currentUser.role = role;
-            if(role === 'admin') {
-                AppState.currentUser.name = "Alex Morgan";
-                AppState.currentUser.email = "alex@brightloop.io";
-            } else if(role === 'staff') {
-                AppState.currentUser.name = "Sarah Jenkins";
-                AppState.currentUser.email = "sarah@brightloop.io";
-            } else if(role === 'customer') {
-                AppState.currentUser.name = "Acme Corporation";
-                AppState.currentUser.email = "billing@acmecorp.com";
+            if (AppState.token) {
+                headers['Authorization'] = `Bearer ${AppState.token}`;
             }
 
-            // Update Header user UI
+            try {
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401 && !endpoint.includes('/auth/login')) {
+                    // Try to re-authenticate with default credentials for current role
+                    await autoLoginCurrentRole();
+                    return apiRequest(endpoint, options);
+                }
+
+                if (!response.ok) {
+                    const errorJson = await response.json().catch(() => ({ detail: response.statusText }));
+                    throw new Error(errorJson.detail || `Request failed with ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (err) {
+                console.error(`API Error on [${endpoint}]:`, err);
+                throw err;
+            }
+        }
+
+        // --- Role Auto-Login Helper ---
+        async function autoLoginCurrentRole() {
+            let creds = { email: 'admin@brightloop.com', password: 'Admin@123!' };
+            if (AppState.currentUser.role === 'staff') {
+                creds = { email: 'staff@brightloop.com', password: 'Staff@123!' };
+            } else if (AppState.currentUser.role === 'customer') {
+                creds = { email: 'customer@brightloop.com', password: 'Cust@1234!' };
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(creds)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    AppState.token = data.access_token;
+                    localStorage.setItem('brightloop_token', AppState.token);
+                    AppState.currentUser = data.user;
+                }
+            } catch (e) {
+                console.warn('Auto-login error:', e);
+            }
+        }
+
+        // --- Switch Role ---
+        async function switchRole(role) {
+            AppState.currentUser.role = role;
+            await autoLoginCurrentRole();
+
+            // Update UI Header
             document.getElementById('header-user-name').innerText = `${AppState.currentUser.name} (${role.toUpperCase()})`;
             document.getElementById('header-user-email').innerText = AppState.currentUser.email;
 
             // Highlight buttons
             ['admin', 'staff', 'customer'].forEach(r => {
                 const btn = document.getElementById(`role-btn-${r}`);
-                if(btn) {
-                    if(r === role) {
-                        btn.className = "px-3 py-1.5 rounded-md font-medium transition-all bg-indigo-600 text-white shadow-sm";
-                    } else {
-                        btn.className = "px-3 py-1.5 rounded-md font-medium transition-all text-slate-300 hover:text-white";
-                    }
+                if (btn) {
+                    btn.className = (r === role)
+                        ? "px-3 py-1.5 rounded-md font-medium transition-all bg-indigo-600 text-white shadow-sm"
+                        : "px-3 py-1.5 rounded-md font-medium transition-all text-slate-300 hover:text-white";
                 }
             });
 
-            if(document.getElementById('mobile-role-select')) {
+            if (document.getElementById('mobile-role-select')) {
                 document.getElementById('mobile-role-select').value = role;
             }
 
             renderSidebar();
-            
-            // If customer, switch directly to portal tab
-            if(role === 'customer') {
+
+            if (role === 'customer') {
                 switchTab('portal');
             } else {
                 switchTab('dashboard');
             }
-            showToast(`Switched view to ${role.toUpperCase()} role`, 'info');
+
+            await loadData();
+            showToast(`Logged in as ${role.toUpperCase()}: ${AppState.currentUser.email}`, 'info');
         }
 
         // --- Sidebar Navigation Renderer ---
@@ -1026,10 +1042,10 @@
             let mainLinks = [];
             let mgmtLinks = [];
 
-            if(role === 'admin') {
+            if (role === 'admin') {
                 mainLinks = [
                     { id: 'dashboard', label: 'Dashboard & Metrics', icon: 'layout-dashboard' },
-                    { id: 'subscriptions', label: 'Subscriptions & Quotes', icon: 'layers' },
+                    { id: 'subscriptions', label: 'Subscriptions Pipeline', icon: 'layers' },
                     { id: 'invoicing', label: 'Billing & Invoices', icon: 'receipt' }
                 ];
                 mgmtLinks = [
@@ -1037,7 +1053,7 @@
                     { id: 'staff', label: 'Staff Management', icon: 'users' }
                 ];
                 document.getElementById('admin-staff-nav-section').style.display = 'block';
-            } else if(role === 'staff') {
+            } else if (role === 'staff') {
                 mainLinks = [
                     { id: 'dashboard', label: 'Overview Dashboard', icon: 'layout-dashboard' },
                     { id: 'subscriptions', label: 'Subscriptions Pipeline', icon: 'layers' },
@@ -1048,9 +1064,8 @@
                 ];
                 document.getElementById('admin-staff-nav-section').style.display = 'block';
             } else {
-                // Customer
                 mainLinks = [
-                    { id: 'portal', label: 'My Subscription Portal', icon: 'globe' },
+                    { id: 'portal', label: 'My Subscriptions', icon: 'globe' },
                     { id: 'invoicing', label: 'My Invoices & Receipts', icon: 'receipt' }
                 ];
                 document.getElementById('admin-staff-nav-section').style.display = 'none';
@@ -1062,7 +1077,7 @@
                 </button>
             `).join('');
 
-            if(mgmt.parentElement.style.display !== 'none') {
+            if (mgmt && mgmt.parentElement.style.display !== 'none') {
                 mgmt.innerHTML = mgmtLinks.map(l => `
                     <button onclick="switchTab('${l.id}')" id="nav-${l.id}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-slate-300 hover:bg-slate-800 hover:text-white">
                         <i data-lucide="${l.icon}" class="w-4 h-4 text-emerald-400"></i> ${l.label}
@@ -1077,43 +1092,117 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             const target = document.getElementById(`tab-${tabId}`);
-            if(target) target.classList.add('active');
+            if (target) target.classList.add('active');
 
-            // Update active state in sidebar buttons
             document.querySelectorAll('aside nav button').forEach(btn => {
                 btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-slate-300 hover:bg-slate-800 hover:text-white";
             });
             const activeBtn = document.getElementById(`nav-${tabId}`);
-            if(activeBtn) {
+            if (activeBtn) {
                 activeBtn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition bg-indigo-600 text-white shadow-sm";
             }
 
-            renderAll();
+            lucide.createIcons();
         }
 
-        // --- Master Render Function ---
-        function renderAll() {
-            renderDashboard();
-            renderProducts();
-            renderPlansAndDiscounts();
-            renderSubscriptions();
-            renderInvoices();
-            renderCustomerPortal();
-            renderStaff();
-            renderPlanSelectDropdown();
-            lucide.createIcons();
+        // --- Master Data Loader (Real Backend Calls) ---
+        async function loadData() {
+            try {
+                // If not logged in, auto-login
+                if (!AppState.token) {
+                    await autoLoginCurrentRole();
+                }
+
+                // 1. Products, Plans, Taxes
+                const [productsRes, plansRes, discountsRes, taxesRes] = await Promise.all([
+                    apiRequest('/products?page=1&page_size=50').catch(() => ({ items: [] })),
+                    apiRequest('/plans?page=1&page_size=50').catch(() => ({ items: [] })),
+                    apiRequest('/discounts').catch(() => []),
+                    apiRequest('/taxes').catch(() => [])
+                ]);
+
+                AppState.products = productsRes.items || [];
+                AppState.plans = plansRes.items || [];
+                AppState.discounts = Array.isArray(discountsRes) ? discountsRes : (discountsRes.items || []);
+                AppState.taxes = Array.isArray(taxesRes) ? taxesRes : [];
+
+                // 2. Role-specific calls
+                if (AppState.currentUser.role === 'customer') {
+                    const [portalStats, portalSubs, portalInvs] = await Promise.all([
+                        apiRequest('/portal/stats').catch(() => ({})),
+                        apiRequest('/portal/subscriptions').catch(() => []),
+                        apiRequest('/portal/invoices').catch(() => [])
+                    ]);
+                    AppState.subscriptions = portalSubs;
+                    AppState.invoices = portalInvs;
+                    renderCustomerPortal(portalStats);
+                } else {
+                    // Admin & Staff calls
+                    const [dashStats, subsRes, invsRes, usersRes] = await Promise.all([
+                        apiRequest('/dashboard/stats').catch(() => ({})),
+                        apiRequest('/subscriptions?page=1&page_size=50').catch(() => ({ items: [] })),
+                        apiRequest('/invoices?page=1&page_size=50').catch(() => ({ items: [] })),
+                        apiRequest('/auth/users?role=customer&page_size=50').catch(() => ({ items: [] }))
+                    ]);
+
+                    AppState.dashboardStats = dashStats;
+                    AppState.subscriptions = subsRes.items || [];
+                    AppState.invoices = invsRes.items || [];
+                    AppState.customers = usersRes.items || [];
+
+                    // Fetch staff if admin
+                    if (AppState.currentUser.role === 'admin') {
+                        const staffRes = await apiRequest('/auth/users?role=staff').catch(() => ({ items: [] }));
+                        AppState.staffMembers = staffRes.items || [];
+                    }
+
+                    renderDashboard();
+                }
+
+                renderProducts();
+                renderPlansAndDiscounts();
+                renderSubscriptions();
+                renderInvoices();
+                renderStaff();
+                renderPlanDropdowns();
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Error loading cloud data:', err);
+                showToast("Could not connect to backend at " + API_BASE, "error");
+            }
         }
 
         // --- Render Dashboard ---
         function renderDashboard() {
-            const tbody = document.getElementById('dashboard-subs-tbody');
-            if(!tbody) return;
+            const stats = AppState.dashboardStats || {};
+            
+            if (document.getElementById('metric-active-subs')) {
+                document.getElementById('metric-active-subs').innerText = (stats.active_subscriptions || 0).toLocaleString();
+            }
+            if (document.getElementById('metric-mrr')) {
+                document.getElementById('metric-mrr').innerText = `$${(stats.mrr || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            if (document.getElementById('metric-revenue')) {
+                document.getElementById('metric-revenue').innerText = `$${(stats.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            if (document.getElementById('metric-overdue')) {
+                document.getElementById('metric-overdue').innerText = `$${(stats.overdue_invoices_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                document.getElementById('metric-overdue-desc').innerText = `${stats.overdue_invoices_count || 0} overdue invoices past due`;
+            }
 
-            tbody.innerHTML = AppState.subscriptions.slice(0, 4).map(sub => `
+            const tbody = document.getElementById('dashboard-subs-tbody');
+            if (!tbody) return;
+
+            if (AppState.subscriptions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">No subscriptions found. Click 'New Subscription' to create one.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = AppState.subscriptions.slice(0, 5).map(sub => `
                 <tr class="hover:bg-slate-50/80 transition">
-                    <td class="py-3 px-2 font-semibold text-indigo-600">${sub.subNumber}</td>
-                    <td class="py-3 px-2 font-medium text-slate-800">${sub.customerName}</td>
-                    <td class="py-3 px-2 text-slate-500">${getPlanName(sub.planId)}</td>
+                    <td class="py-3 px-2 font-semibold text-indigo-600">${sub.number}</td>
+                    <td class="py-3 px-2 font-medium text-slate-800">${sub.customer_name || sub.customer_email || 'Customer'}</td>
+                    <td class="py-3 px-2 text-slate-500">${sub.plan_name || 'Plan'}</td>
                     <td class="py-3 px-2">${renderStatusBadge(sub.status)}</td>
                     <td class="py-3 px-2 text-right">
                         <button onclick="switchTab('subscriptions')" class="text-xs text-indigo-600 hover:underline font-semibold">Inspect</button>
@@ -1126,47 +1215,53 @@
         function renderProducts() {
             const tbody = document.getElementById('products-tbody');
             const adminActions = document.getElementById('admin-product-actions');
-            if(!tbody) return;
+            if (!tbody) return;
 
-            // Restrict adding products and deletion to Admin role only
-            if(adminActions) {
-                if(AppState.currentUser.role === 'admin') {
-                    adminActions.style.display = 'flex';
-                } else {
-                    adminActions.style.display = 'none';
-                }
+            if (adminActions) {
+                adminActions.style.display = (AppState.currentUser.role === 'admin') ? 'flex' : 'none';
             }
 
-            tbody.innerHTML = AppState.products.map(p => `
-                <tr class="hover:bg-slate-50/80 transition">
-                    <td class="py-3 px-3 font-semibold text-slate-900">${p.name}</td>
-                    <td class="py-3 px-3"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] font-medium">${p.type}</span></td>
-                    <td class="py-3 px-3 font-bold text-emerald-600">$${p.salesPrice.toFixed(2)}</td>
-                    <td class="py-3 px-3 text-slate-500">$${p.costPrice.toFixed(2)}</td>
-                    <td class="py-3 px-3 text-indigo-600 font-medium">${p.variant}</td>
-                    <td class="py-3 px-3 text-right">
-                        ${AppState.currentUser.role === 'admin' 
-                            ? `<button onclick="deleteProduct('${p.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold">Delete</button>` 
-                            : `<span class="text-slate-400 text-[11px]">Read Only</span>`}
-                    </td>
-                </tr>
-            `).join('');
+            if (AppState.products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No products configured.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = AppState.products.map(p => {
+                const variantLabels = (p.variants && p.variants.length > 0)
+                    ? p.variants.map(v => `${v.attribute_value} (+${v.price_extra ? '$' + v.price_extra : '$0'})`).join(', ')
+                    : 'Standard';
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-3 font-semibold text-slate-900">${p.name}</td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] font-medium uppercase">${p.type}</span></td>
+                        <td class="py-3 px-3 font-bold text-emerald-600">$${parseFloat(p.sales_price || 0).toFixed(2)}</td>
+                        <td class="py-3 px-3 text-slate-500">$${parseFloat(p.cost_price || 0).toFixed(2)}</td>
+                        <td class="py-3 px-3 text-indigo-600 font-medium">${variantLabels}</td>
+                        <td class="py-3 px-3 text-right">
+                            ${AppState.currentUser.role === 'admin' 
+                                ? `<button onclick="deleteProduct('${p.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold">Delete</button>` 
+                                : `<span class="text-slate-400 text-[11px]">Read Only</span>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // --- Render Plans & Discounts ---
         function renderPlansAndDiscounts() {
             const planCont = document.getElementById('plans-list-container');
             const discCont = document.getElementById('discounts-list-container');
-            if(!planCont || !discCont) return;
+            if (!planCont || !discCont) return;
 
             planCont.innerHTML = AppState.plans.map(pl => `
                 <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
                     <div>
                         <h4 class="font-semibold text-slate-900 text-xs">${pl.name}</h4>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Billing: <span class="font-medium text-slate-700">${pl.billingFrequency}</span> | Min Qty: ${pl.minQty}</p>
-                        <p class="text-[10px] text-indigo-600 mt-1 font-medium">Lifecycle: ${pl.lifecycle}</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Billing: <span class="font-medium text-slate-700 uppercase">${pl.billing_period}</span> | Amount: <span class="font-bold text-emerald-600">$${parseFloat(pl.amount || 0).toFixed(2)}</span></p>
+                        <p class="text-[10px] text-indigo-600 mt-1 font-medium">Valid: ${pl.available_from} to ${pl.available_to}</p>
                     </div>
-                    <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold">Active Plan</span>
+                    <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold">Active</span>
                 </div>
             `).join('');
 
@@ -1174,8 +1269,8 @@
                 <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
                     <div>
                         <h4 class="font-semibold text-slate-900 text-xs">${d.name}</h4>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Value: <span class="font-bold text-emerald-600">${d.value}${d.type.includes('Percentage') ? '%' : '$'}</span> | Min Qty: ${d.minQty}</p>
-                        <p class="text-[10px] text-slate-400 mt-1">Usage: ${d.count} / ${d.limit} used</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Type: <span class="font-semibold">${d.type}</span> | Value: <span class="font-bold text-emerald-600">${d.value}${d.type === 'percentage' ? '%' : '$'}</span></p>
+                        <p class="text-[10px] text-slate-400 mt-1">Usage: ${d.usage_count || 0} / ${d.usage_limit || 'Unlimited'}</p>
                     </div>
                     <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold">Rule Active</span>
                 </div>
@@ -1185,31 +1280,40 @@
         // --- Render Subscriptions Pipeline ---
         function renderSubscriptions() {
             const tbody = document.getElementById('subscriptions-tbody');
-            if(!tbody) return;
+            if (!tbody) return;
 
             let list = AppState.subscriptions;
-            if(AppState.activeFilterStatus !== 'ALL') {
-                list = list.filter(s => s.status === AppState.activeFilterStatus);
+            if (AppState.activeFilterStatus !== 'ALL') {
+                list = list.filter(s => (s.status || '').toLowerCase() === AppState.activeFilterStatus.toLowerCase());
+            }
+            if (AppState.searchQuery) {
+                const q = AppState.searchQuery.toLowerCase();
+                list = list.filter(s => (s.number || '').toLowerCase().includes(q) || (s.customer_name || '').toLowerCase().includes(q) || (s.customer_email || '').toLowerCase().includes(q));
+            }
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No subscriptions match filter.</td></tr>`;
+                return;
             }
 
             tbody.innerHTML = list.map(sub => `
                 <tr class="hover:bg-slate-50/80 transition">
-                    <td class="py-3 px-3 font-semibold text-indigo-600">${sub.subNumber}</td>
-                    <td class="py-3 px-3 font-medium text-slate-900">${sub.customerName}</td>
-                    <td class="py-3 px-3 text-slate-600">${getPlanName(sub.planId)}</td>
-                    <td class="py-3 px-3 text-slate-500">${sub.startDate}</td>
-                    <td class="py-3 px-3 text-slate-500">${sub.paymentTerms}</td>
+                    <td class="py-3 px-3 font-semibold text-indigo-600">${sub.number}</td>
+                    <td class="py-3 px-3 font-medium text-slate-900">${sub.customer_name || sub.customer_email || 'Customer'}</td>
+                    <td class="py-3 px-3 text-slate-600">${sub.plan_name || 'Plan'}</td>
+                    <td class="py-3 px-3 text-slate-500">${sub.start_date || '--'}</td>
+                    <td class="py-3 px-3 text-slate-500">${sub.payment_terms_days ? 'Net ' + sub.payment_terms_days : 'Net 15'}</td>
                     <td class="py-3 px-3">${renderStatusBadge(sub.status)}</td>
                     <td class="py-3 px-3 text-right flex items-center justify-end gap-2">
                         <select onchange="updateSubStatus('${sub.id}', this.value)" class="text-[11px] bg-slate-100 border border-slate-300 rounded px-1.5 py-1 font-medium">
-                            <option value="" disabled selected>Change State</option>
-                            <option value="Draft">Draft</option>
-                            <option value="Quotation">Quotation</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Active">Active</option>
-                            <option value="Closed">Closed</option>
+                            <option value="" disabled selected>Move State</option>
+                            <option value="draft">Draft</option>
+                            <option value="quotation">Quotation</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="active">Active</option>
+                            <option value="closed">Closed</option>
                         </select>
-                        <button onclick="generateSingleInvoice('${sub.id}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-[11px] font-semibold">Bill</button>
+                        <button onclick="generateSingleInvoice('${sub.id}')" title="Generate next cycle invoice" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-[11px] font-semibold">Bill</button>
                     </td>
                 </tr>
             `).join('');
@@ -1218,23 +1322,32 @@
         // --- Render Invoices Ledger ---
         function renderInvoices() {
             const tbody = document.getElementById('invoices-tbody');
-            if(!tbody) return;
+            if (!tbody) return;
 
             let list = AppState.invoices;
-            if(AppState.activeInvoiceFilter !== 'ALL') {
-                list = list.filter(i => i.status === AppState.activeInvoiceFilter);
+            if (AppState.activeInvoiceFilter !== 'ALL') {
+                if (AppState.activeInvoiceFilter === 'overdue') {
+                    list = list.filter(i => i.is_overdue);
+                } else {
+                    list = list.filter(i => (i.status || '').toLowerCase() === AppState.activeInvoiceFilter.toLowerCase());
+                }
+            }
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No invoices match filter.</td></tr>`;
+                return;
             }
 
             tbody.innerHTML = list.map(inv => `
                 <tr class="hover:bg-slate-50/80 transition">
-                    <td class="py-3 px-3 font-semibold text-indigo-600 cursor-pointer hover:underline" onclick="previewInvoice('${inv.id}')">${inv.invoiceNumber}</td>
-                    <td class="py-3 px-3 font-medium text-slate-900">${inv.customerName}</td>
-                    <td class="py-3 px-3 text-slate-500">${inv.date} <br><span class="text-[10px] text-rose-500">Due: ${inv.dueDate}</span></td>
-                    <td class="py-3 px-3 text-slate-600">$${inv.subtotal.toLocaleString()} + $${inv.tax.toLocaleString()}</td>
-                    <td class="py-3 px-3 font-bold text-slate-900">$${inv.total.toLocaleString()}</td>
-                    <td class="py-3 px-3">${renderStatusBadge(inv.status)}</td>
+                    <td class="py-3 px-3 font-semibold text-indigo-600 cursor-pointer hover:underline" onclick="previewInvoice('${inv.id}')">${inv.number}</td>
+                    <td class="py-3 px-3 font-medium text-slate-900">${inv.customer_name || inv.customer_email || 'Customer'}</td>
+                    <td class="py-3 px-3 text-slate-500">${inv.invoice_date} <br><span class="text-[10px] ${inv.is_overdue ? 'text-rose-600 font-bold' : 'text-slate-400'}">Due: ${inv.due_date}</span></td>
+                    <td class="py-3 px-3 text-slate-600">$${parseFloat(inv.subtotal || 0).toFixed(2)} + $${parseFloat(inv.tax_total || 0).toFixed(2)}</td>
+                    <td class="py-3 px-3 font-bold text-slate-900">$${parseFloat(inv.total || 0).toFixed(2)}</td>
+                    <td class="py-3 px-3">${renderStatusBadge(inv.status, inv.is_overdue)}</td>
                     <td class="py-3 px-3 text-right space-x-2">
-                        ${inv.status !== 'Paid' ? `<button onclick="openPaymentModal('${inv.id}', ${inv.total})" class="px-2.5 py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-[11px] font-semibold">Record Pay</button>` : `<span class="text-[11px] text-emerald-600 font-semibold">Paid in Full</span>`}
+                        ${inv.status !== 'paid' ? `<button onclick="openPaymentModal('${inv.id}', ${inv.total})" class="px-2.5 py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-[11px] font-semibold">Record Pay</button>` : `<span class="text-[11px] text-emerald-600 font-semibold">Paid in Full</span>`}
                         <button onclick="previewInvoice('${inv.id}')" class="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-[11px] font-semibold">View</button>
                     </td>
                 </tr>
@@ -1242,85 +1355,480 @@
         }
 
         // --- Render Customer Portal View ---
-        function renderCustomerPortal() {
+        function renderCustomerPortal(portalStats = {}) {
             const subsCont = document.getElementById('portal-subs-container');
             const invCont = document.getElementById('portal-invoices-container');
-            if(!subsCont || !invCont) return;
+            if (!subsCont || !invCont) return;
 
-            subsCont.innerHTML = AppState.subscriptions.map(sub => `
-                <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-slate-900 text-xs">${sub.subNumber}</span>
-                            ${renderStatusBadge(sub.status)}
+            if (portalStats.customer_name) {
+                document.getElementById('portal-greeting').innerText = `Welcome back, ${portalStats.customer_name}!`;
+                document.getElementById('portal-balance-due').innerText = `$${parseFloat(portalStats.balance_due || 0).toFixed(2)}`;
+                document.getElementById('portal-total-paid').innerText = `Total Settled: $${parseFloat(portalStats.total_paid || 0).toFixed(2)}`;
+            }
+
+            if (AppState.subscriptions.length === 0) {
+                subsCont.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">No subscriptions yet.</p>`;
+            } else {
+                subsCont.innerHTML = AppState.subscriptions.map(sub => `
+                    <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-900 text-xs">${sub.number}</span>
+                                ${renderStatusBadge(sub.status)}
+                            </div>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">Plan: ${sub.plan_name || 'Standard Plan'}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Start: ${sub.start_date} | Renews: ${sub.end_date} | Terms: Net ${sub.payment_terms_days} days</p>
                         </div>
-                        <p class="text-xs text-slate-600 mt-1 font-medium">${sub.lines}</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Renews: ${sub.endDate} | Terms: ${sub.paymentTerms}</p>
+                        <button onclick="showToast('Subscription is active & in good standing', 'info')" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-sm">Details</button>
                     </div>
-                    <button onclick="showToast('Add-on variant toggled successfully', 'success')" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-sm">Manage Add-ons</button>
-                </div>
-            `).join('');
+                `).join('');
+            }
 
-            invCont.innerHTML = AppState.invoices.map(inv => `
-                <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <p class="font-bold text-slate-900 text-xs">${inv.invoiceNumber} - $${inv.total.toLocaleString()}</p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Issued: ${inv.date} | Due: ${inv.dueDate}</p>
+            if (AppState.invoices.length === 0) {
+                invCont.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">No invoices generated yet.</p>`;
+            } else {
+                invCont.innerHTML = AppState.invoices.map(inv => `
+                    <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-slate-900 text-xs">${inv.number} - $${parseFloat(inv.total || 0).toFixed(2)}</p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Issued: ${inv.invoice_date} | Due: ${inv.due_date}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${renderStatusBadge(inv.status, inv.is_overdue)}
+                            <button onclick="downloadPdfDirect('${inv.id}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-semibold flex items-center gap-1">
+                                <i data-lucide="download" class="w-3 h-3"></i> PDF
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        ${renderStatusBadge(inv.status)}
-                        <button onclick="previewInvoice('${inv.id}')" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-semibold">Download PDF</button>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         // --- Render Staff Directory ---
         function renderStaff() {
             const tbody = document.getElementById('staff-tbody');
-            if(!tbody) return;
+            if (!tbody) return;
+
+            if (AppState.staffMembers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">No staff members found. Click 'Add Staff Member' to provision.</td></tr>`;
+                return;
+            }
 
             tbody.innerHTML = AppState.staffMembers.map(st => `
                 <tr class="hover:bg-slate-50/80 transition">
                     <td class="py-3 px-3 font-semibold text-slate-900">${st.name}</td>
                     <td class="py-3 px-3 text-slate-600">${st.email}</td>
-                    <td class="py-3 px-3"><span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold">${st.role}</span></td>
-                    <td class="py-3 px-3 text-slate-500">Day-to-day subscription operations & customer support</td>
-                    <td class="py-3 px-3 text-right">
-                        <button onclick="deleteStaff('${st.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold">Revoke Access</button>
-                    </td>
+                    <td class="py-3 px-3"><span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold uppercase">${st.role}</span></td>
+                    <td class="py-3 px-3 text-slate-500">Subscription pipeline, quotation review & payment recording</td>
                 </tr>
             `).join('');
         }
 
         // --- Helper: Status Badges ---
-        function renderStatusBadge(status) {
+        function renderStatusBadge(status, isOverdue = false) {
+            const s = (status || '').toLowerCase();
+            if (isOverdue) {
+                return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-rose-50 text-rose-700 border-rose-200">OVERDUE</span>`;
+            }
             let color = "bg-slate-100 text-slate-700 border-slate-200";
-            if(status === 'Active' || status === 'Paid' || status === 'Confirmed') {
+            if (s === 'active' || s === 'paid' || s === 'confirmed') {
                 color = "bg-emerald-50 text-emerald-700 border-emerald-200";
-            } else if(status === 'Quotation' || status === 'Draft') {
+            } else if (s === 'quotation' || s === 'draft') {
                 color = "bg-blue-50 text-blue-700 border-blue-200";
-            } else if(status === 'Overdue' || status === 'Closed') {
+            } else if (s === 'closed' || s === 'cancelled') {
                 color = "bg-rose-50 text-rose-700 border-rose-200";
             }
-            return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${color}">${status}</span>`;
+            return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${color} uppercase">${status}</span>`;
         }
 
-        function getPlanName(planId) {
-            const p = AppState.plans.find(x => x.id === planId);
-            return p ? p.name : "Custom Enterprise Plan";
+        // --- Dropdown Population ---
+        function renderPlanDropdowns() {
+            const planSelect = document.getElementById('sub-plan-select');
+            const custSelect = document.getElementById('sub-cust-select');
+            const baseProdSelect = document.getElementById('plan-product-select');
+
+            if (planSelect) {
+                planSelect.innerHTML = AppState.plans.map(p => `<option value="${p.id}">${p.name} ($${p.amount} / ${p.billing_period})</option>`).join('');
+                onPlanSelectionChanged();
+            }
+
+            if (custSelect) {
+                custSelect.innerHTML = AppState.customers.map(c => `<option value="${c.id}">${c.name} (${c.email})</option>`).join('');
+            }
+
+            if (baseProdSelect) {
+                baseProdSelect.innerHTML = AppState.products.map(p => `<option value="${p.id}">${p.name} ($${p.sales_price})</option>`).join('');
+            }
         }
 
-        function renderPlanSelectDropdown() {
-            const select = document.getElementById('sub-plan-select');
-            if(!select) return;
-            select.innerHTML = AppState.plans.map(p => `<option value="${p.id}">${p.name} (${p.billingFrequency})</option>`).join('');
+        function onPlanSelectionChanged() {
+            const planSelect = document.getElementById('sub-plan-select');
+            const variantSelect = document.getElementById('sub-variant-select');
+            if (!planSelect || !variantSelect) return;
+
+            const selectedPlan = AppState.plans.find(p => p.id === planSelect.value);
+            if (!selectedPlan) return;
+
+            const prod = AppState.products.find(p => p.id === selectedPlan.product_id);
+            if (prod && prod.variants && prod.variants.length > 0) {
+                variantSelect.innerHTML = `<option value="">Base / Standard Edition (+ $0.00)</option>` + 
+                    prod.variants.map(v => `<option value="${v.id}">${v.attribute_value} (+ $${v.price_extra})</option>`).join('');
+            } else {
+                variantSelect.innerHTML = `<option value="">Standard Edition (+ $0.00)</option>`;
+            }
         }
 
-        // --- Interactive Modals Control ---
-        function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
-        function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
-        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+        // --- Filter Helpers ---
+        function filterSubStatus(status) {
+            AppState.activeFilterStatus = status;
+            ['ALL', 'draft', 'quotation', 'confirmed', 'active', 'closed'].forEach(s => {
+                const btn = document.getElementById(`filter-btn-${s}`);
+                if (btn) {
+                    btn.className = (s.toLowerCase() === status.toLowerCase())
+                        ? "px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white"
+                        : "px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+            });
+            renderSubscriptions();
+        }
+
+        function filterSubscriptionsSearch() {
+            AppState.searchQuery = document.getElementById('sub-search-input').value;
+            renderSubscriptions();
+        }
+
+        function filterInvoices(status) {
+            AppState.activeInvoiceFilter = status;
+            renderInvoices();
+        }
+
+        // --- Actions: Create Subscription ---
+        async function handleCreateSubscription(e) {
+            e.preventDefault();
+            const planId = document.getElementById('sub-plan-select').value;
+            const customerId = document.getElementById('sub-cust-select').value || AppState.currentUser.id;
+            const startDate = document.getElementById('sub-start-date').value;
+            const terms = parseInt(document.getElementById('sub-terms').value || '15');
+            const qty = parseInt(document.getElementById('sub-qty').value || '1');
+            const variantId = document.getElementById('sub-variant-select').value || null;
+
+            const selectedPlan = AppState.plans.find(p => p.id === planId);
+            if (!selectedPlan) {
+                showToast("Please choose a valid plan", "error");
+                return;
+            }
+
+            const endDate = new Date(new Date(startDate).getTime() + 365 * 86400000).toISOString().split('T')[0];
+
+            try {
+                const payload = {
+                    customer_id: customerId,
+                    plan_id: planId,
+                    start_date: startDate,
+                    end_date: endDate,
+                    payment_terms_days: terms,
+                    lines: [
+                        {
+                            product_id: selectedPlan.product_id,
+                            variant_id: variantId,
+                            quantity: qty
+                        }
+                    ]
+                };
+
+                const res = await apiRequest('/subscriptions', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                closeModal('new-sub-modal');
+                showToast(`Subscription ${res.number} created in Draft status!`, 'success');
+                await loadData();
+            } catch (err) {
+                showToast(`Failed to create subscription: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Update Subscription Status ---
+        async function updateSubStatus(subId, newStatus) {
+            try {
+                const res = await apiRequest(`/subscriptions/${subId}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status: newStatus.toLowerCase() })
+                });
+                showToast(`Subscription ${res.number} updated to ${res.status.toUpperCase()}!`, 'success');
+                await loadData();
+            } catch (err) {
+                showToast(`Transition failed: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Generate Single Invoice (Idempotent) ---
+        async function generateSingleInvoice(subId) {
+            try {
+                const res = await apiRequest(`/invoices/generate/${subId}`, { method: 'POST' });
+                showToast(`Generated Invoice #${res.number} for ${res.customer_name || 'Customer'}!`, 'success');
+                await loadData();
+            } catch (err) {
+                showToast(`Invoice generation: ${err.message}`, 'info');
+            }
+        }
+
+        // --- Actions: Trigger Batch Billing Run ---
+        async function triggerBulkInvoicing() {
+            try {
+                showToast("Executing bulk billing run across active subscriptions...", "info");
+                const res = await apiRequest('/invoices/generate-bulk', { method: 'POST' });
+                showToast(`Batch completed: Generated ${res.generated_count} invoices, ${res.skipped_count} up-to-date!`, 'success');
+                await loadData();
+            } catch (err) {
+                showToast(`Bulk billing failed: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Record Payment ---
+        function openPaymentModal(invoiceId, totalAmount) {
+            document.getElementById('pay-invoice-id').value = invoiceId;
+            document.getElementById('pay-amount').value = parseFloat(totalAmount).toFixed(2);
+            document.getElementById('pay-inv-subtitle').innerText = `Settling invoice: ${invoiceId}`;
+            openModal('record-payment-modal');
+        }
+
+        async function handleRecordPayment(e) {
+            e.preventDefault();
+            const invoiceId = document.getElementById('pay-invoice-id').value;
+            const method = document.getElementById('pay-method').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value);
+            const dateVal = document.getElementById('pay-date').value;
+            const note = document.getElementById('pay-note').value;
+
+            try {
+                const res = await apiRequest('/payments', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        invoice_id: invoiceId,
+                        method: method,
+                        amount: amount,
+                        payment_date: dateVal,
+                        note: note
+                    })
+                });
+                closeModal('record-payment-modal');
+                showToast(`Payment of $${res.amount.toFixed(2)} recorded! Invoice marked Paid.`, 'success');
+                await loadData();
+            } catch (err) {
+                showToast(`Payment error: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: View & Preview Invoice ---
+        async function previewInvoice(invId) {
+            try {
+                const inv = await apiRequest(`/invoices/${invId}`);
+                AppState.currentPreviewInvoice = inv;
+
+                document.getElementById('inv-prev-number').innerText = inv.number;
+                document.getElementById('inv-prev-date').innerText = `Date: ${inv.invoice_date}`;
+                document.getElementById('inv-prev-duedate').innerText = inv.due_date;
+                document.getElementById('inv-prev-period').innerText = `Period: ${inv.period_start} to ${inv.period_end}`;
+                document.getElementById('inv-prev-customer').innerText = inv.customer_name || 'Customer';
+                document.getElementById('inv-prev-email').innerText = inv.customer_email || '';
+                document.getElementById('inv-prev-status').innerText = (inv.status || '').toUpperCase();
+                document.getElementById('inv-prev-subtotal').innerText = `$${parseFloat(inv.subtotal || 0).toFixed(2)}`;
+                document.getElementById('inv-prev-tax').innerText = `$${parseFloat(inv.tax_total || 0).toFixed(2)}`;
+                document.getElementById('inv-prev-discount').innerText = `-$${parseFloat(inv.discount_total || 0).toFixed(2)}`;
+                document.getElementById('inv-prev-total').innerText = `$${parseFloat(inv.total || 0).toFixed(2)}`;
+
+                const tbody = document.getElementById('inv-prev-items');
+                if (inv.lines && inv.lines.length > 0) {
+                    tbody.innerHTML = inv.lines.map(l => `
+                        <tr>
+                            <td class="py-2">${l.description || l.product_name || 'Item'}</td>
+                            <td class="py-2 text-center">${l.quantity}</td>
+                            <td class="py-2 text-right">$${parseFloat(l.unit_price || 0).toFixed(2)}</td>
+                            <td class="py-2 text-right font-semibold">$${parseFloat(l.total || 0).toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-2 text-slate-400">Subscription line items</td></tr>`;
+                }
+
+                openModal('invoice-preview-modal');
+            } catch (err) {
+                showToast(`Could not load invoice: ${err.message}`, 'error');
+            }
+        }
+
+        function downloadActiveInvoicePdf() {
+            if (!AppState.currentPreviewInvoice) return;
+            downloadPdfDirect(AppState.currentPreviewInvoice.id);
+        }
+
+        function downloadPdfDirect(invId) {
+            const token = AppState.token;
+            const pdfUrl = `${API_BASE}/invoices/${invId}/pdf`;
+            window.open(pdfUrl, '_blank');
+        }
+
+        async function sendInvoiceEmail() {
+            if (!AppState.currentPreviewInvoice) return;
+            try {
+                showToast("Dispatching invoice email with PDF via Resend...", "info");
+                const res = await apiRequest(`/invoices/${AppState.currentPreviewInvoice.id}/send`, { method: 'POST' });
+                showToast(`Invoice email dispatched via Resend to ${res.customer_email || 'customer'}!`, 'success');
+                closeModal('invoice-preview-modal');
+                await loadData();
+            } catch (err) {
+                showToast(`Email error: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Create Product & Variant ---
+        async function handleCreateProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('prod-name').value;
+            const type = document.getElementById('prod-type').value;
+            const sales = parseFloat(document.getElementById('prod-sales').value);
+            const cost = parseFloat(document.getElementById('prod-cost').value);
+            const notes = document.getElementById('prod-notes').value;
+            const variantType = document.getElementById('prod-variant-type').value;
+
+            const variants = [];
+            if (variantType === 'odoo') {
+                variants.push({ attribute_name: "Brand", attribute_value: "Odoo Integration Edition", price_extra: 560.0 });
+            } else if (variantType === 'enterprise') {
+                variants.push({ attribute_name: "Tier", attribute_value: "Enterprise Multi-tenant", price_extra: 1200.0 });
+            }
+
+            try {
+                const payload = {
+                    name,
+                    type,
+                    sales_price: sales,
+                    cost_price: cost,
+                    notes,
+                    is_active: true,
+                    variants: variants,
+                    tax_rule_ids: AppState.taxes.slice(0, 1).map(t => t.id)
+                };
+
+                await apiRequest('/products', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                closeModal('new-product-modal');
+                showToast("Product & variant added to cloud catalog!", "success");
+                await loadData();
+            } catch (err) {
+                showToast(`Product creation failed: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Create Plan ---
+        async function handleCreatePlan(e) {
+            e.preventDefault();
+            const name = document.getElementById('plan-name').value;
+            const productId = document.getElementById('plan-product-select').value;
+            const period = document.getElementById('plan-freq').value;
+            const amount = parseFloat(document.getElementById('plan-amount').value);
+            const start = document.getElementById('plan-start').value;
+            const end = document.getElementById('plan-end').value;
+
+            try {
+                const payload = {
+                    name,
+                    product_id: productId,
+                    billing_period: period,
+                    amount: amount,
+                    min_quantity: 1,
+                    available_from: start,
+                    available_to: end,
+                    closable_early: true,
+                    pausable: true,
+                    auto_close: false,
+                    renewable: true,
+                    is_active: true
+                };
+
+                await apiRequest('/plans', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                closeModal('new-plan-modal');
+                showToast("New recurring billing plan saved!", "success");
+                await loadData();
+            } catch (err) {
+                showToast(`Plan creation failed: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Create Discount ---
+        async function handleCreateDiscount(e) {
+            e.preventDefault();
+            const name = document.getElementById('disc-name').value;
+            const type = document.getElementById('disc-type').value;
+            const value = parseFloat(document.getElementById('disc-val').value);
+            const minAmt = parseFloat(document.getElementById('disc-minamt').value || '0');
+            const limit = parseInt(document.getElementById('disc-limit').value || '100');
+            const start = document.getElementById('disc-start').value;
+            const end = document.getElementById('disc-end').value;
+
+            try {
+                const payload = {
+                    name,
+                    type,
+                    value,
+                    scope: "subscription",
+                    min_purchase_amount: minAmt,
+                    start_date: start,
+                    end_date: end,
+                    usage_limit: limit,
+                    is_active: true
+                };
+
+                await apiRequest('/discounts', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                closeModal('new-discount-modal');
+                showToast("Discount rule created & active!", "success");
+                await loadData();
+            } catch (err) {
+                showToast(`Discount creation failed: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Actions: Create Staff (Admin only) ---
+        async function handleCreateStaff(e) {
+            e.preventDefault();
+            const name = document.getElementById('staff-name').value;
+            const email = document.getElementById('staff-email').value;
+            const password = document.getElementById('staff-password').value;
+
+            try {
+                await apiRequest('/auth/staff', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, email, password })
+                });
+                closeModal('new-staff-modal');
+                showToast(`Staff member ${name} provisioned!`, 'success');
+                await loadData();
+            } catch (err) {
+                showToast(`Staff creation failed: ${err.message}`, 'error');
+            }
+        }
+
+        // --- Excel Export ---
+        function downloadExcel(type) {
+            const url = `${API_BASE}/export/${type}`;
+            showToast(`Generating ${type} Excel spreadsheet...`, 'info');
+            window.open(url, '_blank');
+        }
+
+        // --- Auth Modal Controls & Submission ---
+        function openAuthModal() { openModal('auth-modal'); }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function switchAuthTab(tab) {
             ['signin', 'signup', 'reset'].forEach(t => {
@@ -1331,7 +1839,6 @@
             document.getElementById(`auth-tab-${tab}`).className = "flex-1 pb-3 text-indigo-600 border-b-2 border-indigo-600 font-semibold";
         }
 
-        // --- Password Validation Logic (>8 chars, uppercase, lowercase, special) ---
         function validatePasswordStrength(pwd) {
             const len = pwd.length >= 8;
             const upper = /[A-Z]/.test(pwd);
@@ -1346,294 +1853,92 @@
 
         function updateReqIndicator(elementId, isValid) {
             const el = document.getElementById(elementId);
-            if(!el) return;
-            if(isValid) {
-                el.innerHTML = `<i data-lucide="check-circle" class="w-3 h-3 text-emerald-500"></i> ` + el.innerText.substring(el.innerText.indexOf(' ') + 1);
+            if (!el) return;
+            const text = el.innerText.replace(/^.*?\s/, '');
+            if (isValid) {
+                el.innerHTML = `<i data-lucide="check-circle" class="w-3 h-3 text-emerald-500"></i> ${text}`;
                 el.className = "flex items-center gap-1 text-emerald-600 font-medium";
             } else {
-                el.innerHTML = `<i data-lucide="x-circle" class="w-3 h-3 text-rose-500"></i> ` + el.innerText.substring(el.innerText.indexOf(' ') + 1);
+                el.innerHTML = `<i data-lucide="x-circle" class="w-3 h-3 text-rose-500"></i> ${text}`;
                 el.className = "flex items-center gap-1 text-slate-500";
             }
             lucide.createIcons();
         }
 
-        // --- Handlers & Actions ---
-        function handleSignIn(e) {
+        async function handleSignIn(e) {
             e.preventDefault();
-            closeModal('auth-modal');
-            showToast("Successfully signed in to Brightloop OS", "success");
-        }
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
 
-        function handleSignUp(e) {
-            e.preventDefault();
-            const pwd = document.getElementById('signup-password').value;
-            if(pwd.length < 8 || !/[A-Z]/.test(pwd) || !/[a-z]/.test(pwd) || !/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
-                showToast("Password does not meet security criteria!", "error");
-                return;
-            }
-            closeModal('auth-modal');
-            showToast("Account created successfully! Welcome to Brightloop.", "success");
-        }
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-        function handlePasswordReset(e) {
-            e.preventDefault();
-            closeModal('auth-modal');
-            showToast("Password reset link dispatched to registered email.", "success");
-        }
-
-        function handleCreateProduct(e) {
-            e.preventDefault();
-            const name = document.getElementById('prod-name').value;
-            const type = document.getElementById('prod-type').value;
-            const sales = parseFloat(document.getElementById('prod-sales').value);
-            const cost = parseFloat(document.getElementById('prod-cost').value);
-            const notes = document.getElementById('prod-notes').value;
-            const variant = document.getElementById('prod-variant').value;
-
-            AppState.products.push({ id: 'p-' + Date.now(), name, type, salesPrice: sales, costPrice: cost, notes, variant });
-            closeModal('new-product-modal');
-            renderAll();
-            showToast("Product and variant created successfully", "success");
-        }
-
-        function handleCreatePlan(e) {
-            e.preventDefault();
-            const name = document.getElementById('plan-name').value;
-            const billingFrequency = document.getElementById('plan-freq').value;
-            const minQty = parseInt(document.getElementById('plan-minqty').value);
-            const startDate = document.getElementById('plan-start').value;
-            const endDate = document.getElementById('plan-end').value;
-            const lifecycle = document.getElementById('plan-lifecycle').value;
-
-            AppState.plans.push({ id: 'pl-' + Date.now(), name, billingFrequency, minQty, startDate, endDate, lifecycle });
-            closeModal('new-plan-modal');
-            renderAll();
-            showToast("Subscription plan configured successfully", "success");
-        }
-
-        function handleCreateDiscount(e) {
-            e.preventDefault();
-            const name = document.getElementById('disc-name').value;
-            const type = document.getElementById('disc-type').value;
-            const value = parseFloat(document.getElementById('disc-val').value);
-            const minQty = parseInt(document.getElementById('disc-minqty').value);
-            const limit = parseInt(document.getElementById('disc-limit').value);
-            const start = document.getElementById('disc-start').value;
-            const end = document.getElementById('disc-end').value;
-
-            AppState.discounts.push({ id: 'd-' + Date.now(), name, type, value, minQty, limit, count: 0, start, end });
-            closeModal('new-discount-modal');
-            renderAll();
-            showToast("Discount rules engine updated", "success");
-        }
-
-        function handleCreateSubscription(e) {
-            e.preventDefault();
-            const customerName = document.getElementById('sub-cust-name').value;
-            const planId = document.getElementById('sub-plan-select').value;
-            const status = document.getElementById('sub-status-select').value;
-            const startDate = document.getElementById('sub-start-date').value;
-            const paymentTerms = document.getElementById('sub-terms').value;
-            const lines = document.getElementById('sub-lines').value;
-
-            AppState.subscriptions.push({
-                id: 'sub-' + Date.now(),
-                subNumber: 'SUB-2026-' + Math.floor(100 + Math.random() * 900),
-                customerName,
-                customerEmail: 'billing@' + customerName.toLowerCase().replace(/[^a-z]/g, '') + '.com',
-                planId,
-                startDate,
-                endDate: new Date(Date.now() + 31536000000).toISOString().split('T')[0],
-                paymentTerms,
-                status,
-                lines
-            });
-
-            closeModal('new-sub-modal');
-            renderAll();
-            showToast("Subscription successfully created in pipeline", "success");
-        }
-
-        function handleCreateStaff(e) {
-            e.preventDefault();
-            if(AppState.currentUser.role !== 'admin') {
-                showToast("Only Admin can add new staff members!", "error");
-                closeModal('new-staff-modal');
-                return;
-            }
-            const name = document.getElementById('staff-name').value;
-            const email = document.getElementById('staff-email').value;
-            const role = document.getElementById('staff-role').value;
-
-            AppState.staffMembers.push({ id: 'st-' + Date.now(), name, email, role });
-            closeModal('new-staff-modal');
-            renderAll();
-            showToast("Staff member provisioned successfully", "success");
-        }
-
-        function updateSubStatus(subId, newStatus) {
-            const sub = AppState.subscriptions.find(s => s.id === subId);
-            if(sub) {
-                sub.status = newStatus;
-                renderAll();
-                showToast(`Subscription ${sub.subNumber} moved to ${newStatus}`, "success");
-            }
-        }
-
-        function deleteProduct(id) {
-            if(AppState.currentUser.role !== 'admin') {
-                showToast("Only Admin can delete products!", "error");
-                return;
-            }
-            AppState.products = AppState.products.filter(p => p.id !== id);
-            renderAll();
-            showToast("Product removed from catalog", "info");
-        }
-
-        function promptRevokeStaff(id) {
-            if(AppState.currentUser.role !== 'admin') {
-                showToast("Only Admin can revoke staff access!", "error");
-                return;
-            }
-            const st = AppState.staffMembers.find(s => s.id === id);
-            if(!st) return;
-            document.getElementById('pending-revoke-staff-id').value = id;
-            document.getElementById('revoke-staff-desc').innerText = `Are you sure you want to revoke system access for ${st.name} (${st.email})?`;
-            openModal('confirm-revoke-modal');
-        }
-
-        function confirmRevokeStaff() {
-            const id = document.getElementById('pending-revoke-staff-id').value;
-            AppState.staffMembers = AppState.staffMembers.filter(s => s.id !== id);
-            closeModal('confirm-revoke-modal');
-            renderAll();
-            showToast("Staff access revoked successfully", "info");
-        }
-
-        function deleteStaff(id) {
-            promptRevokeStaff(id);
-        }
-
-        function deleteStaff(id) {
-            AppState.staffMembers = AppState.staffMembers.filter(s => s.id !== id);
-            renderAll();
-            showToast("Staff access revoked", "info");
-        }
-
-        function filterSubStatus(status) {
-            AppState.activeFilterStatus = status;
-            ['ALL', 'Draft', 'Quotation', 'Active', 'Closed'].forEach(s => {
-                const btn = document.getElementById(`filter-btn-${s}`);
-                if(btn) {
-                    if(s === status) {
-                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white";
-                    } else {
-                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200";
-                    }
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({ detail: 'Login failed' }));
+                    throw new Error(err.detail);
                 }
-            });
-            renderSubscriptions();
-        }
 
-        function filterInvoices(status) {
-            AppState.activeInvoiceFilter = status;
-            renderInvoices();
-        }
+                const data = await res.json();
+                AppState.token = data.access_token;
+                localStorage.setItem('brightloop_token', AppState.token);
+                AppState.currentUser = data.user;
 
-        function generateMonthlyInvoices() {
-            const newInvNum = 'INV-2026-' + Math.floor(1000 + Math.random() * 9000);
-            AppState.invoices.unshift({
-                id: 'inv-' + Date.now(),
-                invoiceNumber: newInvNum,
-                subscriptionId: AppState.subscriptions[0].id,
-                customerName: AppState.subscriptions[0].customerName,
-                date: new Date().toISOString().split('T')[0],
-                dueDate: new Date(Date.now() + 2592000000).toISOString().split('T')[0],
-                status: 'Confirmed',
-                subtotal: 1450,
-                tax: 123.25,
-                total: 1573.25,
-                lines: [{desc: "Monthly Recurring Plan Auto-Billed", qty: 1, price: 1450}]
-            });
-            renderAll();
-            showToast("Billing Day batch successfully generated invoices without duplication", "success");
-        }
-
-        function generateSingleInvoice(subId) {
-            const sub = AppState.subscriptions.find(s => s.id === subId);
-            if(!sub) return;
-            AppState.invoices.unshift({
-                id: 'inv-' + Date.now(),
-                invoiceNumber: 'INV-2026-' + Math.floor(1000 + Math.random() * 9000),
-                subscriptionId: sub.id,
-                customerName: sub.customerName,
-                date: new Date().toISOString().split('T')[0],
-                dueDate: new Date(Date.now() + 2592000000).toISOString().split('T')[0],
-                status: 'Confirmed',
-                subtotal: 1200,
-                tax: 102,
-                total: 1302,
-                lines: [{desc: sub.lines, qty: 1, price: 1200}]
-            });
-            renderAll();
-            showToast(`Invoice generated successfully for ${sub.customerName}`, "success");
-        }
-
-        function openPaymentModal(invoiceId, totalAmount) {
-            document.getElementById('pay-invoice-id').value = invoiceId;
-            document.getElementById('pay-amount').value = totalAmount;
-            document.getElementById('pay-inv-subtitle').innerText = `Matching payment against invoice ID: ${invoiceId}`;
-            openModal('record-payment-modal');
-        }
-
-        function handleRecordPayment(e) {
-            e.preventDefault();
-            const invId = document.getElementById('pay-invoice-id').value;
-            const inv = AppState.invoices.find(i => i.id === invId);
-            if(inv) {
-                inv.status = 'Paid';
+                closeModal('auth-modal');
+                showToast(`Signed in as ${data.user.name} (${data.user.role.toUpperCase()})`, 'success');
+                switchRole(data.user.role);
+            } catch (err) {
+                showToast(`Sign in failed: ${err.message}`, 'error');
             }
-            closeModal('record-payment-modal');
-            renderAll();
-            showToast("Payment recorded successfully and matched to invoice", "success");
         }
 
-        let currentPreviewInvoiceId = null;
-        function previewInvoice(invId) {
-            const inv = AppState.invoices.find(i => i.id === invId);
-            if(!inv) return;
-            currentPreviewInvoiceId = invId;
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
 
-            document.getElementById('inv-prev-number').innerText = inv.invoiceNumber;
-            document.getElementById('inv-prev-date').innerText = `Date: ${inv.date}`;
-            document.getElementById('inv-prev-duedate').innerText = inv.dueDate;
-            document.getElementById('inv-prev-customer').innerText = inv.customerName;
-            document.getElementById('inv-prev-status').innerText = inv.status;
-            document.getElementById('inv-prev-subtotal').innerText = `$${inv.subtotal.toLocaleString()}`;
-            document.getElementById('inv-prev-tax').innerText = `$${inv.tax.toLocaleString()}`;
-            document.getElementById('inv-prev-total').innerText = `$${inv.total.toLocaleString()}`;
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
 
-            const tbody = document.getElementById('inv-prev-items');
-            tbody.innerHTML = inv.lines.map(l => `
-                <tr>
-                    <td class="py-2">${l.desc}</td>
-                    <td class="py-2 text-center">${l.qty}</td>
-                    <td class="py-2 text-right">$${l.price.toFixed(2)}</td>
-                    <td class="py-2 text-right font-semibold">$${(l.qty * l.price).toFixed(2)}</td>
-                </tr>
-            `).join('');
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({ detail: 'Registration failed' }));
+                    throw new Error(err.detail);
+                }
 
-            openModal('invoice-preview-modal');
+                const data = await res.json();
+                AppState.token = data.access_token;
+                localStorage.setItem('brightloop_token', AppState.token);
+                AppState.currentUser = data.user;
+
+                closeModal('auth-modal');
+                showToast(`Account created for ${data.user.name}!`, 'success');
+                switchRole(data.user.role);
+            } catch (err) {
+                showToast(`Registration failed: ${err.message}`, 'error');
+            }
         }
 
-        function printInvoice() {
-            showToast("Preparing printable PDF document...", "info");
-            setTimeout(() => window.print(), 500);
-        }
-
-        function sendInvoiceEmail() {
-            closeModal('invoice-preview-modal');
-            showToast("Invoice successfully dispatched to customer email address", "success");
+        async function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            try {
+                await apiRequest('/auth/reset-password/request', {
+                    method: 'POST',
+                    body: JSON.stringify({ email })
+                });
+                closeModal('auth-modal');
+                showToast("Password reset request sent! Check registered email.", "success");
+            } catch (err) {
+                showToast(`Reset failed: ${err.message}`, 'error');
+            }
         }
 
         // --- Toast Notification System ---
@@ -1642,12 +1947,13 @@
             const toast = document.createElement('div');
             
             let bg = "bg-slate-900 text-white";
-            if(type === 'success') bg = "bg-emerald-600 text-white";
-            if(type === 'error') bg = "bg-rose-600 text-white";
-            if(type === 'info') bg = "bg-indigo-600 text-white";
+            let icon = "info";
+            if (type === 'success') { bg = "bg-emerald-600 text-white"; icon = "check-circle-2"; }
+            if (type === 'error') { bg = "bg-rose-600 text-white"; icon = "alert-triangle"; }
+            if (type === 'info') { bg = "bg-indigo-600 text-white"; icon = "info"; }
 
             toast.className = `${bg} px-4 py-3 rounded-xl shadow-xl text-xs font-medium flex items-center gap-2 pointer-events-auto animate-fade-in transition-all`;
-            toast.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i> <span>${message}</span>`;
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i> <span>${message}</span>`;
             
             container.appendChild(toast);
             lucide.createIcons();
@@ -1657,6 +1963,26 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3500);
         }
+
+        // --- Application Bootstrap on Page Load ---
+        window.onload = async function() {
+            lucide.createIcons();
+            
+            // Set default date fields
+            const todayStr = new Date().toISOString().split('T')[0];
+            const nextYearStr = new Date(Date.now() + 31536000000).toISOString().split('T')[0];
+            const nextQuarterStr = new Date(Date.now() + 7776000000).toISOString().split('T')[0];
+
+            if (document.getElementById('plan-start')) document.getElementById('plan-start').value = todayStr;
+            if (document.getElementById('plan-end')) document.getElementById('plan-end').value = nextYearStr;
+            if (document.getElementById('disc-start')) document.getElementById('disc-start').value = todayStr;
+            if (document.getElementById('disc-end')) document.getElementById('disc-end').value = nextQuarterStr;
+            if (document.getElementById('sub-start-date')) document.getElementById('sub-start-date').value = todayStr;
+            if (document.getElementById('pay-date')) document.getElementById('pay-date').value = todayStr;
+
+            renderSidebar();
+            await switchRole('admin');
+        };
     </script>
 </body>
 </html>
