@@ -90,13 +90,38 @@ def main():
         token = reg_resp.json()["access_token"]
         print(f"  [SUCCESS] New customer account created!")
     elif reg_resp.status_code == 400 and "already exists" in reg_resp.text:
-        print(f"  [INFO] Customer account already exists. Logging in with credentials...")
+        print(f"  [INFO] Customer account '{email}' exists in the database. Logging in...")
         login_resp = client.post("/api/v1/auth/login", json={"email": email, "password": password})
-        if login_resp.status_code != 200:
-            print(f"  [ERROR] Login failed: {login_resp.status_code} - {login_resp.text}")
-            sys.exit(1)
-        token = login_resp.json()["access_token"]
-        print(f"  [SUCCESS] Logged in successfully!")
+        if login_resp.status_code == 200:
+            token = login_resp.json()["access_token"]
+            print(f"  [SUCCESS] Logged in successfully!")
+        else:
+            print(f"\n  [NOTICE] The account exists in the database, but was previously created with a different password.")
+            choice = input(f"  Reset password for '{email}' to '{password}' now? [Y/n]: ").strip().lower()
+            if choice != "n":
+                reset_req = client.post("/api/v1/auth/reset-password/request", json={"email": email})
+                reset_token = reset_req.json().get("reset_token")
+                if reset_token:
+                    conf_resp = client.post("/api/v1/auth/reset-password/confirm", json={"token": reset_token, "new_password": password})
+                    if conf_resp.status_code == 200:
+                        print("  [SUCCESS] Password updated in database! Logging in...")
+                        login_resp = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+                        token = login_resp.json()["access_token"]
+                        print("  [SUCCESS] Logged in successfully!")
+                    else:
+                        print(f"  [ERROR] Password reset failed: {conf_resp.text}")
+                        sys.exit(1)
+                else:
+                    print(f"  [ERROR] Reset token unavailable: {reset_req.text}")
+                    sys.exit(1)
+            else:
+                retry_pwd = input("  Enter original password: ").strip()
+                login_resp = client.post("/api/v1/auth/login", json={"email": email, "password": retry_pwd})
+                if login_resp.status_code != 200:
+                    print(f"  [ERROR] Login failed: {login_resp.status_code} - {login_resp.text}")
+                    sys.exit(1)
+                token = login_resp.json()["access_token"]
+                print("  [SUCCESS] Logged in successfully!")
     else:
         print(f"  [ERROR] Registration failed: {reg_resp.status_code} - {reg_resp.text}")
         sys.exit(1)

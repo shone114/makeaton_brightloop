@@ -20,9 +20,34 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard & Analytics"])
 def get_dashboard_stats(db: Session = Depends(get_db)):
     today = date.today()
 
-    active_subs_count = db.query(func.count(Subscription.id)).filter(Subscription.status == "active").scalar() or 0
+    # Fast Server-Side Aggregated MRR & ARR
+    active_plans = (
+        db.query(Plan.amount, Plan.billing_period, func.count(Subscription.id))
+        .join(Subscription, Subscription.plan_id == Plan.id)
+        .filter(Subscription.status == "active")
+        .group_by(Plan.amount, Plan.billing_period)
+        .all()
+    )
+
+    mrr_val = 0.0
+    active_subs_count = 0
+    for amount, period, count in active_plans:
+        active_subs_count += count
+        p_amt = float(amount) * count
+        bp = period.lower()
+        if bp == "monthly":
+            mrr_val += p_amt
+        elif bp == "yearly":
+            mrr_val += p_amt / 12.0
+        elif bp == "weekly":
+            mrr_val += p_amt * (52.0 / 12.0)
+        elif bp == "daily":
+            mrr_val += p_amt * 30.0
+
+    arr_val = mrr_val * 12.0
     total_revenue = db.query(func.sum(Payment.amount)).scalar() or 0.0
 
+    unpaid_count = db.query(func.count(Invoice.id)).filter(Invoice.status.in_(["draft", "confirmed"])).scalar() or 0
     total_unpaid_invoices = db.query(func.sum(Invoice.total)).filter(Invoice.status.in_(["draft", "confirmed"])).scalar() or 0.0
     partial_payments = (
         db.query(func.sum(Payment.amount))
@@ -37,12 +62,23 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         .filter(and_(Invoice.status.in_(["draft", "confirmed"]), Invoice.due_date < today))
         .scalar() or 0
     )
+    overdue_amount = (
+        db.query(func.sum(Invoice.total))
+        .filter(and_(Invoice.status.in_(["draft", "confirmed"]), Invoice.due_date < today))
+        .scalar() or 0.0
+    )
 
     return DashboardStatsResponse(
+        mrr=round(mrr_val, 2),
+        arr=round(arr_val, 2),
         active_subscriptions=active_subs_count,
         total_revenue=round(float(total_revenue), 2),
+        total_paid_revenue=round(float(total_revenue), 2),
         outstanding_amount=round(float(outstanding_amount), 2),
+        unpaid_invoices_count=unpaid_count,
+        unpaid_invoices_amount=round(float(total_unpaid_invoices), 2),
         overdue_invoices_count=overdue_count,
+        overdue_invoices_amount=round(float(overdue_amount), 2),
         active_subs_delta=12.5,
         revenue_delta=18.2,
         outstanding_delta=-5.4,

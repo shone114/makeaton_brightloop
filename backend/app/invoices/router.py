@@ -2,7 +2,7 @@ import calendar
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, and_, or_
 from app.core.database import get_db
 from app.core.config import settings
@@ -76,11 +76,14 @@ def generate_invoice_for_subscription(
     db: Session,
     subscription_id: str,
     invoice_date: Optional[date] = None,
+    sub: Optional[Subscription] = None,
+    inv_number_override: Optional[str] = None,
 ) -> Optional[Invoice]:
     if invoice_date is None:
         invoice_date = date.today()
 
-    sub = db.query(Subscription).filter(Subscription.id == subscription_id).first()
+    if sub is None:
+        sub = db.query(Subscription).filter(Subscription.id == subscription_id).first()
     if not sub:
         return None
 
@@ -109,7 +112,7 @@ def generate_invoice_for_subscription(
     if existing is not None:
         return None  # Skip duplicate!
 
-    inv_number = generate_invoice_number(db)
+    inv_number = inv_number_override or generate_invoice_number(db)
     due_date = invoice_date + timedelta(days=sub.payment_terms_days)
 
     invoice = Invoice(
@@ -380,24 +383,48 @@ def generate_single_invoice(
 
 @router.post("/generate-bulk", response_model=BulkInvoiceResponse, dependencies=[Depends(require_staff_or_admin)])
 def generate_bulk_invoices(db: Session = Depends(get_db)):
-    active_subs = db.query(Subscription).filter(Subscription.status == "active").all()
+    today = date.today()
 
+    # Query ONLY active subscriptions where an invoice is actually due
+    due_subs = (
+        db.query(Subscription)
+        .options(
+            joinedload(Subscription.plan),
+            joinedload(Subscription.lines).joinedload(SubscriptionLine.product),
+            joinedload(Subscription.lines).joinedload(SubscriptionLine.variant),
+        )
+        .filter(
+            and_(
+                Subscription.status == "active",
+                Subscription.start_date <= today,
+                or_(
+                    Subscription.billed_through.is_(None),
+                    Subscription.billed_through < today,
+                ),
+            )
+        )
+        .limit(100)
+        .all()
+    )
+
+    base_inv_count = db.query(func.count(Invoice.id)).scalar() or 0
     generated_count = 0
     skipped_count = 0
     details = []
 
-    for sub in active_subs:
-        catch_up_iterations = 0
-        while catch_up_iterations < 12:
-            inv = generate_invoice_for_subscription(db, sub.id)
-            if inv:
-                generated_count += 1
-                details.append(f"Generated {inv.number} for subscription {sub.number}")
-                catch_up_iterations += 1
-            else:
-                if catch_up_iterations == 0:
-                    skipped_count += 1
-                break
+    for sub in due_subs:
+        next_num = f"INV-{base_inv_count + generated_count + 1:05d}"
+        inv = generate_invoice_for_subscription(
+            db,
+            sub.id,
+            sub=sub,
+            inv_number_override=next_num,
+        )
+        if inv:
+            generated_count += 1
+            details.append(f"Generated {inv.number} for subscription {sub.number}")
+        else:
+            skipped_count += 1
 
     db.commit()
 

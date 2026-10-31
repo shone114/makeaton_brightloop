@@ -18,6 +18,8 @@ brightloop.db
 test_*.db
 test_invoice_*.pdf
 *.pdf
+*.xlsx
+export_*.xlsx
 
 # Python
 backend/venv/

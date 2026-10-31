@@ -454,10 +454,16 @@ class DiscountRuleResponse(BaseModel):
 # ============================================================================
 
 class DashboardStatsResponse(BaseModel):
+    mrr: float = 0.0
+    arr: float = 0.0
     active_subscriptions: int
     total_revenue: float
+    total_paid_revenue: float = 0.0
     outstanding_amount: float
-    overdue_invoices_count: float
+    unpaid_invoices_count: int = 0
+    unpaid_invoices_amount: float = 0.0
+    overdue_invoices_count: int = 0
+    overdue_invoices_amount: float = 0.0
     # Trend deltas vs prior period
     active_subs_delta: float = 0.0
     revenue_delta: float = 0.0

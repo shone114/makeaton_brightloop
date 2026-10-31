@@ -147,22 +147,17 @@ def main():
     # ----------------------------------------------------
     # STEP 6: DATA EXPORT CAPABILITY
     # ----------------------------------------------------
-    print_step(6, "Financial Data Export (CSV Export)")
-    export_resp = client.get("/api/v1/export/subscriptions?format=csv", headers=staff_headers)
+    print_step(6, "Financial Data Export (Professional Excel .xlsx Export)")
+    export_resp = client.get("/api/v1/export/subscriptions", headers=staff_headers)
     if export_resp.status_code == 200:
-        csv_file = os.path.abspath("export_subscriptions_preview.csv")
-        with open(csv_file, "wb") as f:
+        xlsx_file = os.path.abspath("export_subscriptions_preview.xlsx")
+        with open(xlsx_file, "wb") as f:
             f.write(export_resp.content)
-        print(f"  [SUCCESS] Subscriptions CSV exported: {len(export_resp.content):,} bytes")
-        print(f"  Saved to: {csv_file}")
-        
-        # Display first 3 lines of CSV
-        csv_sample = export_resp.content.decode("utf-8", errors="ignore").splitlines()[:4]
-        print("  CSV Preview:")
-        for line in csv_sample:
-            print(f"    | {line}")
+        print(f"  [SUCCESS] Subscriptions Excel exported: {len(export_resp.content):,} bytes")
+        print(f"  Saved formatted spreadsheet to:")
+        print(f"    --> {xlsx_file}")
     else:
-        print(f"  [ERROR] CSV export failed: {export_resp.status_code}")
+        print(f"  [ERROR] Export failed: {export_resp.status_code}")
 
     # ----------------------------------------------------
     # STEP 7: AUDIT TRAIL LOGGING

@@ -98,6 +98,7 @@ def create_plan(
         is_active=payload.is_active,
     )
     db.add(plan)
+    db.flush()
     record_audit_log(
         db,
         entity_type="plan",

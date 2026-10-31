@@ -27,6 +27,7 @@ def create_tax(
         is_active=payload.is_active,
     )
     db.add(tax)
+    db.flush()
     record_audit_log(
         db,
         entity_type="tax_rule",
